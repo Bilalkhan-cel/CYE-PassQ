@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+.auth-right { align-items: flex-start; padding-top: 2rem; padding-bottom: 2rem; }
+.auth-box   { margin: auto 0; padding: .5rem 0; }
+</style>
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- LEFT -->
+  <div class="auth-left">
+    <img class="bg" src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="Faisal Masjid">
+    <a href="{{ url_for('home') }}" class="auth-badge">
+      <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+      <div>
+        <strong class="en">DGIP Portal</strong>
+        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <span class="en">Ministry of Interior, Pakistan</span>
+        <span class="ur">وزارت داخلہ، پاکستان</span>
+      </div>
+    </a>
+    <div class="auth-caption">
+      <h2 class="en">Begin Your<br>Passport Journey.</h2>
+      <h2 class="ur">اپنا پاسپورٹ<br>سفر شروع کریں۔</h2>
+      <p class="en">Create your account to apply for passport services online.</p>
+      <p class="ur">آن لائن پاسپورٹ خدمات کے لیے اپنا اکاؤنٹ بنائیں۔</p>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="auth-right">
+    <div class="auth-box">
+
+      <div class="auth-box-top">
+        <div class="auth-box-brand">
+          <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+          <div>
+            <strong class="en">GOVERNMENT OF PAKISTAN</strong>
+            <strong class="ur">حکومت پاکستان</strong>
+            <span class="en">Directorate General of Immigration &amp; Passports</span>
+            <span class="ur">ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس</span>
+          </div>
+        </div>
+        <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+      </div>
+
+      <div class="auth-tabs">
+       <button class="auth-tab en" onclick="window.location='{{ url_for('signin') }}'">Sign In</button>
+       <button class="auth-tab ur" onclick="window.location='{{ url_for('signin') }}'">سائن ان</button>
+        <button class="auth-tab active en">Register</button>
+        <button class="auth-tab active ur">رجسٹر</button>
+      </div>
+
+      <div class="auth-welcome">
+        <h2 class="en">Create Account</h2>
+        <h2 class="ur">اکاؤنٹ بنائیں</h2>
+        <p class="en">Register to apply for passport services online. All fields marked * are required.</p>
+        <p class="ur">آن لائن پاسپورٹ خدمات کے لیے رجسٹر کریں۔ * والے خانے لازمی ہیں۔</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}{% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <div class="f-group">
+          <label class="f-label en">Full Name *</label>
+          <label class="f-label ur">پورا نام *</label>
+          <input class="f-input" type="text" name="name" placeholder="As written on your CNIC" maxlength="100"
+                 value="{{ form.get('name', '') }}" autocomplete="name" required>
+        </div>
+        <div class="f-group">
+          <label class="f-label en">CNIC Number *</label>
+          <label class="f-label ur">شناختی کارڈ نمبر *</label>
+          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="12345-6789012-3" maxlength="15"
+                 inputmode="numeric" value="{{ form.get('cnic', '') }}" required>
+          <span class="f-hint en">13-digit national identity number</span>
+          <span class="f-hint ur">13 ہندسوں کا شناختی کارڈ نمبر</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label en">Email Address *</label>
+          <label class="f-label ur">ای میل ایڈریس *</label>
+          <input class="f-input" type="email" name="email" placeholder="your@email.com" maxlength="120"
+                 value="{{ form.get('email', '') }}" autocomplete="email" required>
+          <span class="f-hint en">A verification code will be sent to this email</span>
+          <span class="f-hint ur">اس ای میل پر تصدیقی کوڈ بھیجا جائے گا</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label en">Mobile Number</label>
+          <label class="f-label ur">موبائل نمبر</label>
+          <input class="f-input" type="text" id="phone" name="phone" placeholder="03xx-xxxxxxx" maxlength="12"
+                 inputmode="numeric" value="{{ form.get('phone', '') }}">
+        </div>
+        {% include "_password_fields.html" %}
+        <button type="submit" class="f-submit en">Create Account</button>
+        <button type="submit" class="f-submit ur">اکاؤنٹ بنائیں</button>
+      </form>
+
+      <div class="auth-footer">
+        <p class="en">Already have an account? <a href="{{ url_for('signin') }}">Sign In</a></p>
+        <p class="ur">پہلے سے اکاؤنٹ ہے؟ <a href="{{ url_for('signin') }}">سائن ان کریں</a></p>
+        <p style="margin-top:.5rem;">
+          <a href="{{ url_for('home') }}" class="en" style="color:var(--text-muted);font-size:12px;">← Back to Home</a>
+          <a href="{{ url_for('home') }}" class="ur" style="color:var(--text-muted);font-size:12px;">← ہوم پر واپس</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script>
+document.getElementById('cnic').addEventListener('input', function(e) {
+  let v = e.target.value.replace(/\D/g,'');
+  if(v.length>5) v = v.slice(0,5)+'-'+v.slice(5);
+  if(v.length>13) v = v.slice(0,13)+'-'+v.slice(13,14);
+  e.target.value = v;
+});
+document.getElementById('phone').addEventListener('input', function(e) {
+  let v = e.target.value.replace(/\D/g,'');
+  if(v.length>4) v = v.slice(0,4)+'-'+v.slice(4,11);
+  e.target.value = v;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Documents</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div style="text-align: right; margin: 10px 20px;">
+      <button onclick="toggleLanguage()" id="langBtn" style="
+          background: #1a4d2e;
+          color: white;
+          border: none;
+          padding: 4px 14px;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.9rem;
+          font-weight: bold;
+      ">🌐 اردو</button>
+  </div>
+
+  <h2 data-en="Upload Required Documents" data-ur="ضروری دستاویزات اپلوڈ کریں">Upload Required Documents</h2>
+
+  <form method="POST" enctype="multipart/form-data">
+    <label data-en="User CNIC Image:" data-ur="صارف کا شناختی کارڈ تصویر:">User CNIC Image:</label><br>
+    <input type="file" name="user_cnic_img" required><br><br>
+
+    {% if is_minor %}
+      <label data-en="Father CNIC Image:" data-ur="والد کا شناختی کارڈ تصویر:">Father CNIC Image:</label><br>
+      <input type="file" name="father_cnic_img" required><br><br>
+
+      <label data-en="Mother CNIC Image:" data-ur="والدہ کا شناختی کارڈ تصویر:">Mother CNIC Image:</label><br>
+      <input type="file" name="mother_cnic_img" required><br><br>
+    {% endif %}
+
+    <button type="submit" data-en="Upload & Verify" data-ur="اپلوڈ کریں اور تصدیق کریں">Upload & Verify</button>
+  </form>
+
+  <p><a href="{{ url_for('dashboard') }}" data-en="Back to Dashboard" data-ur="ڈیش بورڈ پر واپس جائیں">Back to Dashboard</a></p>
+
+  <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+</body>
+</html>

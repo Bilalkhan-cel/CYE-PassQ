@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Directorate General of Immigration & Passports – Government of Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+/* ═══════════════════════════════════════
+   ANIMATION SYSTEM
+═══════════════════════════════════════ */
+.reveal {
+  opacity: 0; transform: translateY(32px);
+  transition: opacity 0.65s cubic-bezier(.22,.68,0,1.1), transform 0.65s cubic-bezier(.22,.68,0,1.1);
+}
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-group .reveal:nth-child(1) { transition-delay: 0s; }
+.reveal-group .reveal:nth-child(2) { transition-delay: 0.12s; }
+.reveal-group .reveal:nth-child(3) { transition-delay: 0.24s; }
+.reveal-fade { opacity: 0; transition: opacity 0.7s ease; }
+.reveal-fade.visible { opacity: 1; }
+.reveal-scale { opacity: 0; transform: scale(0.80); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.34,1.56,.64,1); }
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+.reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.22,.68,0,1.1); }
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+/* ── Hero Parallax ── */
+.hero-bg img { will-change: transform; transform: scale(1.08) translateY(0px); transition: none; }
+
+/* ── sec-bar animation ── */
+.sec-bar { transform: scaleX(0); transform-origin: left; transition: transform 0.6s cubic-bezier(.22,.68,0,1.1) 0.2s; }
+.sec-head.visible .sec-bar { transform: scaleX(1); }
+
+/* ── Stats bar ── */
+.stats-bar .stat { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.stats-bar.visible .stat:nth-child(1) { opacity:1; transform:none; transition-delay:0s; }
+.stats-bar.visible .stat:nth-child(2) { opacity:1; transform:none; transition-delay:0.1s; }
+.stats-bar.visible .stat:nth-child(3) { opacity:1; transform:none; transition-delay:0.2s; }
+.stats-bar.visible .stat:nth-child(4) { opacity:1; transform:none; transition-delay:0.3s; }
+.stat strong { display: block; transition: color 0.3s ease; }
+.stat:hover strong { color: var(--gold-light); }
+
+/* ── Nav scroll ── */
+.site-nav { transition: background 0.35s ease, box-shadow 0.35s ease; }
+.site-nav.scrolled { background: rgba(1,42,18,.97); box-shadow: 0 4px 24px rgba(0,0,0,.35); }
+
+/* ── Hero text entrance ── */
+.hero-eyebrow { opacity:0; transform:translateY(16px); animation: heroIn 0.7s cubic-bezier(.22,.68,0,1.1) 0.2s forwards; }
+.hero-h1      { opacity:0; transform:translateY(20px); animation: heroIn 0.7s cubic-bezier(.22,.68,0,1.1) 0.38s forwards; }
+.hero-sub     { opacity:0; transform:translateY(16px); animation: heroIn 0.6s ease 0.55s forwards; }
+.hero-tags    { opacity:0; transform:translateY(14px); animation: heroIn 0.6s ease 0.68s forwards; }
+.hero-actions { opacity:0; transform:translateY(14px); animation: heroIn 0.6s ease 0.80s forwards; }
+@keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+
+/* ── Footer links ── */
+.fc ul li a { position:relative; padding-left:0; transition: color 0.2s ease, padding-left 0.2s ease; }
+.fc ul li a::before { content:'›'; position:absolute; left:-14px; opacity:0; color:var(--gold); transition: opacity 0.2s ease, left 0.2s ease; }
+.fc ul li { padding-left: 14px; }
+.fc ul li a:hover::before { opacity:1; left:0; }
+.fc ul li a:hover { padding-left: 4px; }
+
+/* ══════════════════════
+   HERO LIVE EFFECTS
+══════════════════════ */
+
+/* Canvas layers over hero */
+.hero-canvas-clouds {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+}
+.hero-canvas-shimmer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 80px; z-index: 3; pointer-events: none;
+}
+
+/* Typewriter cursor */
+.tw-cursor {
+  display: inline-block; width: 3px; height: .85em;
+  background: #D4AF37; margin-left: 2px; vertical-align: middle;
+  animation: cursorBlink 1s step-end infinite;
+}
+@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Hero badge pulse dot */
+.hero-eyebrow::before { display: none; } /* override existing */
+.hero-eyebrow {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;
+}
+.eyebrow-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #D4AF37; flex-shrink: 0;
+  animation: dotPulse 1.8s ease infinite;
+  box-shadow: 0 0 0 0 rgba(212,175,55,.6);
+}
+@keyframes dotPulse {
+  0%  { transform: scale(1);   box-shadow: 0 0 0 0 rgba(212,175,55,.6); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(212,175,55,0); }
+  100%{ transform: scale(1);   box-shadow: 0 0 0 0 rgba(212,175,55,0); }
+}
+
+/* Glass bottom-left stat card */
+.hero-glass-card {
+  position: absolute; bottom: 36px; left: 5%;
+  z-index: 15; pointer-events: auto;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(212,175,55,.25);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 18px; padding: 18px 22px;
+  min-width: 155px;
+  opacity: 0; transform: translateX(-20px);
+  animation: heroIn 0.7s ease 1.1s forwards;
+}
+.hgc-num {
+  font-size: 30px; font-weight: 700; color: #fff;
+  font-family: 'Playfair Display', serif; line-height: 1;
+}
+.hgc-num span { color: #D4AF37; }
+.hgc-label {
+  font-size: 9.5px; color: rgba(255,255,255,.45);
+  letter-spacing: .14em; text-transform: uppercase;
+  margin: 4px 0 14px;
+}
+.hgc-btn {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(212,175,55,.15);
+  border: 1px solid rgba(212,175,55,.3);
+  border-radius: 20px; padding: 6px 14px 6px 8px;
+  color: #D4AF37; font-size: 11.5px; font-weight: 600;
+  cursor: pointer; width: fit-content;
+  transition: background .2s;
+  text-decoration: none;
+}
+.hgc-btn:hover { background: rgba(212,175,55,.25); }
+.hgc-btn-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(212,175,55,.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+}
+
+/* Corner cutout card — RIVR style */
+.hero-corner-card {
+  position: absolute; bottom: 0; right: 0; z-index: 15;
+  background: rgba(1,20,8,.88);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-radius: 22px 0 0 0;
+  padding: 18px 26px 18px 30px;
+  display: flex; align-items: center; gap: 14px;
+  opacity: 0; transform: translateY(16px);
+  animation: heroIn 0.7s ease 1.2s forwards;
+}
+/* corner SVG masks */
+.hero-corner-card .mask-top {
+  position: absolute; top: -22px; right: 0;
+  width: 22px; height: 22px; pointer-events: none;
+}
+.hero-corner-card .mask-left {
+  position: absolute; bottom: 0; left: -22px;
+  width: 22px; height: 22px; pointer-events: none;
+}
+.hcc-icon {
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1px solid rgba(212,175,55,.3);
+  background: rgba(212,175,55,.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.hcc-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.hcc-sub { font-size: 11px; color: #D4AF37; font-weight: 500; cursor: pointer; }
+.hcc-sub:hover { text-decoration: underline; }
+
+/* Scroll indicator — vertical line style */
+.hero-scroll-hint {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: rgba(255,255,255,.35); font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
+}
+.hero-scroll-hint::after {
+  content: '';
+  display: block; width: 1px; height: 40px;
+  background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent);
+  animation: scrollDrop 2s ease-in-out infinite;
+}
+@keyframes scrollDrop {
+  0%   { transform: scaleY(0); transform-origin: top; opacity: 1; }
+  50%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
+  100% { transform: scaleY(1); transform-origin: bottom; opacity: 0; }
+}
+
+/* ══════════════════════
+   FIX: hero-glass-card was covering the "Apply for Passport" CTA.
+   .hero-glass-card has z-index:15 with no positioned ancestor on
+   .hero-body, so it painted on top of the buttons. Raise the CTA
+   row above it and give it some breathing room from the card.
+══════════════════════ */
+.hero-actions {
+  position: relative;
+  z-index: 20;
+  margin-bottom: 130px;
+}
+@media (max-width: 640px) {
+  .hero-actions { margin-bottom: 170px; }
+}
+
+/* ══════════════════════
+   NEW ABOUT SECTION
+   Dark emerald glassmorphism
+══════════════════════ */
+.section-about-new {
+  background: linear-gradient(135deg, #01411C 0%, #012A12 50%, #01411C 100%);
+  padding: 80px 0; position: relative; overflow: hidden;
+}
+.section-about-new::before {
+  content: ''; position: absolute; inset: 0;
+  background-image: repeating-linear-gradient(
+    45deg, rgba(212,175,55,.025) 0px, rgba(212,175,55,.025) 1px,
+    transparent 1px, transparent 50px
+  );
+}
+.section-about-new::after {
+  content: ''; position: absolute;
+  top: -100px; right: -100px; width: 400px; height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(11,110,60,.35), transparent 70%);
+  pointer-events: none;
+}
+.about-new-inner { position: relative; z-index: 2; max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.about-new-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .22em;
+  text-transform: uppercase; color: #D4AF37;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.about-new-eyebrow::before { content: ''; width: 28px; height: 1px; background: #D4AF37; }
+.about-new-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+  font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.2;
+}
+.about-new-title span { color: #D4AF37; }
+.about-gold-bar { width: 48px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0 32px; }
+.about-new-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media(max-width:640px){ .about-new-grid { grid-template-columns: 1fr; } }
+
+.about-glass-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(212,175,55,.2);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 20px; padding: 28px 26px;
+  transition: transform .3s ease, background .3s ease, border-color .3s ease;
+  cursor: default;
+}
+.about-glass-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255,255,255,.1);
+  border-color: rgba(212,175,55,.5);
+}
+.agc-icon {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: rgba(212,175,55,.12); border: 1px solid rgba(212,175,55,.25);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; margin-bottom: 16px;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.about-glass-card:hover .agc-icon { transform: scale(1.2) rotate(-8deg); }
+.agc-title { font-size: 15px; font-weight: 700; color: #D4AF37; margin-bottom: 8px; }
+.agc-body { font-size: 13.5px; color: rgba(255,255,255,.68); line-height: 1.8; }
+
+/* ══════════════════════
+   NEW SERVICES SECTION
+   Light + glassmorphism cards
+══════════════════════ */
+.section-services-new {
+  background: #F5F7FA; padding: 80px 0;
+  position: relative; overflow: hidden;
+}
+.section-services-new::before {
+  content: ''; position: absolute;
+  bottom: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(1,65,28,.06), transparent 70%);
+  pointer-events: none;
+}
+.svc-new-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+.svc-new-head { margin-bottom: 48px; }
+.svc-new-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .22em;
+  text-transform: uppercase; color: #0B6E3C; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.svc-new-eyebrow::before { content:''; width:28px; height:1px; background:#0B6E3C; }
+.svc-new-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 700; color: #1F2937; margin-bottom: 10px; line-height: 1.2;
+}
+.svc-new-title span { color: #01411C; }
+.svc-gold-bar { width: 48px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0 12px; }
+.svc-new-sub { font-size: 15px; color: #6B7280; max-width: 520px; line-height: 1.7; }
+
+.svc-new-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
+@media(max-width:800px){ .svc-new-grid { grid-template-columns: 1fr; } }
+
+.svc-new-card {
+  background: #fff; border-radius: 20px;
+  border: 1.5px solid #D1D5DB;
+  overflow: hidden;
+  transition: transform .32s cubic-bezier(.22,.68,0,1.2), box-shadow .32s ease, border-color .3s;
+  cursor: pointer; position: relative;
+}
+.svc-new-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 50px rgba(1,65,28,.14);
+  border-color: #D4AF37;
+}
+.svc-new-top {
+  padding: 26px 22px 18px;
+  background: linear-gradient(135deg, #01411C 0%, #0B6E3C 100%);
+  position: relative; overflow: hidden;
+}
+.svc-new-top::after {
+  content: ''; position: absolute;
+  bottom: -30px; right: -30px;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: rgba(255,255,255,.06);
+}
+.svc-new-emoji {
+  font-size: 34px; display: block; margin-bottom: 12px;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  position: relative; z-index: 1;
+}
+.svc-new-card:hover .svc-new-emoji { transform: scale(1.25) rotate(-10deg); }
+.svc-new-card-title { font-size: 15px; font-weight: 700; color: #fff; position: relative; z-index: 1; }
+
+.svc-new-body { padding: 18px 22px 22px; }
+.svc-new-body p { font-size: 13px; color: #6B7280; line-height: 1.75; margin-bottom: 14px; }
+.svc-new-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.svc-new-tag {
+  font-size: 11px; font-weight: 600; color: #01411C;
+  background: rgba(1,65,28,.08); padding: 3px 10px; border-radius: 20px;
+  border: 1px solid rgba(1,65,28,.15);
+}
+.svc-new-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 700; color: #D4AF37;
+  text-decoration: none;
+  transition: gap .2s ease;
+}
+.svc-new-card:hover .svc-new-link { gap: 10px; }
+
+/* ══════════════════════
+   URDU FIXES (same as before)
+══════════════════════ */
+body.lang-ur { line-height: 2.2; letter-spacing: 0; direction: rtl; text-align: right; }
+body.lang-ur p.ur, body.lang-ur li.ur { line-height: 2.4; display: block; margin-bottom: 0.5rem; }
+body.lang-ur span.ur { display: inline; margin-bottom: 0; }
+body.lang-ur h1.ur, body.lang-ur h2.ur, body.lang-ur h3.ur, body.lang-ur h4.ur { line-height: 2; padding-top: 0.3rem; padding-bottom: 0.2rem; margin-bottom: 0.6rem; }
+body.lang-ur .nav-brand-text strong, body.lang-ur .nav-brand-text span { line-height: 2; }
+body.lang-ur .nav-links a.ur { padding: 10px 14px; line-height: 2; height: auto; }
+body.lang-ur .hero-eyebrow span.ur { line-height: 2; font-size: 13px; }
+body.lang-ur .hero-h1.ur, body.lang-ur .hero-h1 span.ur { line-height: 1.9; display: block; }
+body.lang-ur .hero-sub.ur { line-height: 2.6; margin-bottom: 2.2rem; }
+body.lang-ur .hero-tag.ur { line-height: 2; padding: 2px 0; }
+body.lang-ur .stat span.ur { line-height: 2.2; margin-top: 4px; display: block; }
+body.lang-ur .sec-head h2.ur { line-height: 2; margin-bottom: 14px; }
+body.lang-ur .about-box p.ur, body.lang-ur .svc-card p.ur { line-height: 2.5; margin-bottom: 14px; }
+body.lang-ur .svc-card li.ur { padding: 8px 0; line-height: 2.2; }
+body.lang-ur .lead-para.ur { line-height: 2.6; margin-bottom: 18px; }
+body.lang-ur .fc h3.ur { line-height: 2; padding-bottom: 10px; margin-bottom: 14px; }
+body.lang-ur .fc p.ur { line-height: 2.4; margin-bottom: 6px; }
+body.lang-ur .fc ul li a.ur { line-height: 2.4; padding: 4px 0; display: block; }
+body.lang-ur .footer-bottom p.ur { line-height: 2.2; margin: 8px 0; }
+body.lang-ur .site-nav { flex-direction: row-reverse; }
+body.lang-ur .nav-brand { flex-direction: row-reverse; }
+body.lang-ur .nav-links { flex-direction: row-reverse; }
+body.lang-ur .nav-right { flex-direction: row-reverse; }
+body.lang-ur .hero-body { text-align: right; }
+body.lang-ur .hero-eyebrow { flex-direction: row-reverse; }
+body.lang-ur .hero-tags { flex-direction: row-reverse; }
+body.lang-ur .sec-bar { transform-origin: right; }
+body.lang-ur .fc ul li { padding-left: 0; padding-right: 14px; }
+body.lang-ur .fc ul li a::before { left: auto; right: -14px; }
+body.lang-ur .fc ul li a:hover::before { left: auto; right: 0; }
+body.lang-ur .fc ul li a:hover { padding-left: 0; padding-right: 4px; }
+body.lang-ur .fc h3::after { left: auto; right: 0; }
+body.lang-ur .footer-bottom { direction: rtl; }
+body.lang-ur .social-row { flex-direction: row-reverse; }
+body.lang-ur .agc-title.ur, body.lang-ur .agc-body.ur { display: block; }
+body.lang-ur .about-new-eyebrow { flex-direction: row-reverse; }
+body.lang-ur .svc-new-eyebrow { flex-direction: row-reverse; }
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══ -->
+<nav class="site-nav" id="mainNav">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP Logo">
+    <div class="nav-brand-text">
+      <strong class="en">Government of Pakistan</strong>
+      <strong class="ur">حکومت پاکستان</strong>
+      <span class="en">DGIP — Ministry of Interior</span>
+      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('home') }}" class="active en">Home</a>
+    <a href="{{ url_for('home') }}" class="active ur">ہوم</a>
+    <a href="#services" class="en">Services</a>
+    <a href="#services" class="ur">خدمات</a>
+    <a href="#" class="en">Offices</a>
+    <a href="#" class="ur">دفاتر</a>
+    <a href="#" class="en">Track Status</a>
+    <a href="#" class="ur">درخواست ٹریک</a>
+    <a href="#" class="en">Contact</a>
+    <a href="#" class="ur">رابطہ</a>
+    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
+    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
+<li><a href="{{ url_for('voice_agent') }}" data-en="Voice Agent" data-ur="اے آئی مدد">AI Assistance</a></li>
+    
+   
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+    <a href="{{ url_for('signin') }}" class="btn-nav-signin en">Sign In</a>
+    <a href="{{ url_for('signin') }}" class="btn-nav-signin ur">سائن ان</a>
+    <a href="{{ url_for('signup') }}" class="btn-nav-register en">Register</a>
+    <a href="{{ url_for('signup') }}" class="btn-nav-register ur">رجسٹر</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero-section" style="position:relative;overflow:hidden;">
+  <div class="hero-bg" id="heroBg">
+    <img src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="Faisal Masjid Islamabad" id="heroImg">
+  </div>
+
+  <!-- LIVE EFFECT: clouds + particles canvas -->
+  <canvas class="hero-canvas-clouds" id="heroCanvas"></canvas>
+  <!-- LIVE EFFECT: shimmer lights canvas -->
+  <canvas class="hero-canvas-shimmer" id="shimmerCanvas"></canvas>
+
+  <div class="hero-body">
+    <div class="hero-eyebrow">
+      <div class="eyebrow-dot"></div>
+      <span class="en">Official Citizen Portal</span>
+      <span class="ur">سرکاری شہری پورٹل</span>
+    </div>
+    <h1 class="hero-h1" id="heroTitle">
+      <span class="en"><em>Welcome to</em><br>Official Passport Services<br>of Pakistan</span>
+      <span class="ur"><em>سرکاری پاسپورٹ</em><br>خدمات پاکستان</span>
+    </h1>
+    <p class="hero-sub en">Apply for your passport online with ease and track your application in real-time. Authorized travel documentation for Pakistani citizens worldwide.</p>
+    <p class="hero-sub ur">آن لائن پاسپورٹ کے لیے درخواست دیں اور اپنی درخواست کو حقیقی وقت میں ٹریک کریں۔</p>
+    <div class="hero-tags">
+      <div class="hero-tag en">Secure</div>
+      <div class="hero-tag en">Efficient</div>
+      <div class="hero-tag en">ICAO Compliant</div>
+      <div class="hero-tag en">Ministry of Interior</div>
+      <div class="hero-tag ur">محفوظ</div>
+      <div class="hero-tag ur">مؤثر</div>
+      <div class="hero-tag ur">آئی کے اے او</div>
+      <div class="hero-tag ur">وزارت داخلہ</div>
+    </div>
+    <div class="hero-actions">
+      <a href="{{ url_for('signup') }}" class="btn-hero-primary en">Apply for Passport</a>
+      <a href="{{ url_for('signup') }}" class="btn-hero-primary ur">پاسپورٹ درخواست</a>
+      <a href="#services" class="btn-hero-ghost en">View Services</a>
+      <a href="#services" class="btn-hero-ghost ur">خدمات دیکھیں</a>
+    </div>
+  </div>
+
+  <!-- Glass stat card — bottom left -->
+  <div class="hero-glass-card">
+    <div class="hgc-num">3M<span>+</span></div>
+    <div class="hgc-label">Passports Issued Annually</div>
+    <a href="#" class="hgc-btn">
+      <div class="hgc-btn-icon">→</div>
+      Track Status
+    </a>
+  </div>
+
+  <!-- Corner cutout card — bottom right (RIVR style) -->
+  <div class="hero-corner-card">
+    <!-- corner masks so the card blends with page bg -->
+    <svg class="mask-top" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 22V0C22 12.15 12.15 22 0 22H22Z" fill="#F5F7FA"/>
+    </svg>
+    <svg class="mask-left" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M22 22H0C12.15 22 22 12.15 22 0V22Z" fill="#F5F7FA"/>
+    </svg>
+    <div class="hcc-icon">🏢</div>
+    <div>
+      <div class="hcc-title">45+ Offices Nationwide</div>
+      <div class="hcc-sub">Find nearest office →</div>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint en">Scroll</div>
+</section>
+
+<!-- ══ STATS ══ -->
+<div class="stats-bar" id="statsBar">
+  <div class="stat">
+    <strong data-target="45" data-suffix="+">0+</strong>
+    <span class="en">Regional Offices</span>
+    <span class="ur">علاقائی دفاتر</span>
+  </div>
+  <div class="stat">
+    <strong data-target="3" data-suffix="M+">0</strong>
+    <span class="en">Passports Annually</span>
+    <span class="ur">سالانہ پاسپورٹ</span>
+  </div>
+  <div class="stat">
+    <strong>24hr</strong>
+    <span class="en">Express Processing</span>
+    <span class="ur">فوری کارروائی</span>
+  </div>
+  <div class="stat">
+    <strong>ICAO</strong>
+    <span class="en">Compliant Standard</span>
+    <span class="ur">معیار کے مطابق</span>
+  </div>
+</div>
+
+<!-- ══ ABOUT — NEW STYLE ══ -->
+<section id="about" class="section-about-new">
+  <div class="about-new-inner">
+    <div class="about-new-eyebrow reveal-fade">Ministry of Interior — Government of Pakistan</div>
+    <h2 class="about-new-title reveal">
+      <span class="en">About <span>DGIP</span></span>
+      <span class="ur">ڈائریکٹوریٹ جنرل کے <span>بارے میں</span></span>
+    </h2>
+    <div class="about-gold-bar reveal"></div>
+    <p class="lead-para en reveal" style="color:rgba(255,255,255,.65);text-align:left;max-width:700px;margin:0 0 36px;">
+      The Directorate General of Immigration &amp; Passports (DGI&amp;P) is the authorized body under the Ministry of Interior responsible for issuing travel documents to Pakistani citizens. Operating through 45+ regional offices across Pakistan and internationally.
+    </p>
+    <p class="lead-para ur reveal" style="color:rgba(255,255,255,.65);text-align:right;max-width:700px;margin:0 0 36px;">
+      ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس وزارت داخلہ کے تحت پاکستانی شہریوں کو سفری دستاویزات جاری کرنے کا مجاز ادارہ ہے۔
+    </p>
+    <div class="about-new-grid reveal-group">
+      <div class="about-glass-card reveal">
+        <div class="agc-icon">🎯</div>
+        <div class="agc-title en">Our Mission</div>
+        <div class="agc-title ur" style="display:none">ہمارا مشن</div>
+        <div class="agc-body en">To provide secure, efficient, and accessible passport services to all Pakistani citizens with the highest standards of integrity and professionalism.</div>
+        <div class="agc-body ur" style="display:none">تمام پاکستانی شہریوں کو اعلیٰ ترین معیار کے ساتھ محفوظ اور موثر پاسپورٹ خدمات فراہم کرنا۔</div>
+      </div>
+      <div class="about-glass-card reveal">
+        <div class="agc-icon">🌐</div>
+        <div class="agc-title en">Our Vision</div>
+        <div class="agc-title ur" style="display:none">ہماری وژن</div>
+        <div class="agc-body en">To be a model institution for travel document security and citizen service delivery across Pakistan and abroad.</div>
+        <div class="agc-body ur" style="display:none">سفری دستاویزات کی حفاظت اور شہری خدمات میں ایک مثالی ادارے کے طور پر پہچانا جانا۔</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SERVICES — NEW STYLE ══ -->
+<section id="services" class="section-services-new">
+  <div class="svc-new-inner">
+    <div class="svc-new-head reveal">
+      <div class="svc-new-eyebrow en">What We Offer</div>
+      <div class="svc-new-eyebrow ur" style="display:none">ہماری خدمات</div>
+      <h2 class="svc-new-title en">Our <span>Services</span></h2>
+      <h2 class="svc-new-title ur" style="display:none">ہماری <span>خدمات</span></h2>
+      <div class="svc-gold-bar"></div>
+      <p class="svc-new-sub en">Comprehensive passport and travel documentation services for Pakistani citizens</p>
+      <p class="svc-new-sub ur" style="display:none">پاکستانی شہریوں کے لیے پاسپورٹ اور سفری دستاویزات کی مکمل خدمات</p>
+    </div>
+    <div class="svc-new-grid reveal-group">
+      <div class="svc-new-card reveal">
+        <div class="svc-new-top">
+          <span class="svc-new-emoji">📝</span>
+          <div class="svc-new-card-title en">New Passport Application</div>
+          <div class="svc-new-card-title ur" style="display:none">نئے پاسپورٹ کی درخواست</div>
+        </div>
+        <div class="svc-new-body">
+          <p class="en">Apply for your first passport online with complete step-by-step guidance.</p>
+          <p class="ur" style="display:none">مکمل رہنمائی کے ساتھ پہلی بار آن لائن پاسپورٹ درخواست جمع کریں۔</p>
+          <div class="svc-new-tags">
+            <span class="svc-new-tag en">36 or 72 pages</span>
+            <span class="svc-new-tag en">5 or 10 years</span>
+            <span class="svc-new-tag en">Biometric</span>
+            <span class="svc-new-tag ur" style="display:none">36 یا 72 صفحات</span>
+            <span class="svc-new-tag ur" style="display:none">5 یا 10 سال</span>
+          </div>
+          <a href="{{ url_for('signup') }}" class="svc-new-link en">Apply Now →</a>
+          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">ابھی درخواست دیں ←</a>
+        </div>
+      </div>
+      <div class="svc-new-card reveal">
+        <div class="svc-new-top">
+          <span class="svc-new-emoji">🔄</span>
+          <div class="svc-new-card-title en">Passport Renewal</div>
+          <div class="svc-new-card-title ur" style="display:none">پاسپورٹ کی تجدید</div>
+        </div>
+        <div class="svc-new-body">
+          <p class="en">Renew your expired or expiring passport online with minimal documentation.</p>
+          <p class="ur" style="display:none">کم دستاویزات کے ساتھ آن لائن پاسپورٹ کی تجدید کریں۔</p>
+          <div class="svc-new-tags">
+            <span class="svc-new-tag en">Simple process</span>
+            <span class="svc-new-tag en">Home delivery</span>
+            <span class="svc-new-tag ur" style="display:none">آسان عمل</span>
+            <span class="svc-new-tag ur" style="display:none">گھر ڈیلیوری</span>
+          </div>
+          <a href="{{ url_for('signup') }}" class="svc-new-link en">Renew Now →</a>
+          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">ابھی تجدید کریں ←</a>
+        </div>
+      </div>
+      <div class="svc-new-card reveal">
+        <div class="svc-new-top">
+          <span class="svc-new-emoji">⚡</span>
+          <div class="svc-new-card-title en">Urgent / Express Passport</div>
+          <div class="svc-new-card-title ur" style="display:none">فوری پاسپورٹ</div>
+        </div>
+        <div class="svc-new-body">
+          <p class="en">Emergency passport services for urgent travel with fast-track processing.</p>
+          <p class="ur" style="display:none">فوری سفر کے لیے تیز رفتار پاسپورٹ خدمات۔</p>
+          <div class="svc-new-tags">
+            <span class="svc-new-tag en">2–3 days</span>
+            <span class="svc-new-tag en">Same day</span>
+            <span class="svc-new-tag en">Emergency</span>
+            <span class="svc-new-tag ur" style="display:none">2–3 دن</span>
+            <span class="svc-new-tag ur" style="display:none">فوری</span>
+          </div>
+          <a href="{{ url_for('signup') }}" class="svc-new-link en">Apply Urgent →</a>
+          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">فوری درخواست ←</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="fc reveal-left">
+        <h3 class="en">About DGI&amp;P</h3>
+        <h3 class="ur">ڈی جی آئی پی</h3>
+        <p class="en">The authorized body for issuing passports to Pakistani citizens under the Ministry of Interior.</p>
+        <p class="ur">وزارت داخلہ کے تحت پاکستانی شہریوں کو پاسپورٹ جاری کرنے کا مجاز ادارہ۔</p>
+        <div class="social-row">
+          <a href="#">Facebook</a><a href="#">Twitter</a><a href="#">Instagram</a>
+        </div>
+      </div>
+      <div class="fc reveal">
+        <h3 class="en">Quick Links</h3>
+        <h3 class="ur">فوری روابط</h3>
+        <ul>
+          <li><a href="{{ url_for('home') }}" class="en">Home</a><a href="{{ url_for('home') }}" class="ur">ہوم</a></li>
+          <li><a href="#about" class="en">About Us</a><a href="#about" class="ur">ہمارے بارے میں</a></li>
+          <li><a href="#services" class="en">Services</a><a href="#services" class="ur">خدمات</a></li>
+          <li><a href="{{ url_for('signup') }}" class="en">Apply Online</a><a href="{{ url_for('signup') }}" class="ur">آن لائن درخواست</a></li>
+        </ul>
+      </div>
+      <div class="fc reveal">
+        <h3 class="en">Contact Us</h3>
+        <h3 class="ur">رابطہ</h3>
+        <p>📞 051-111-222-887</p>
+        <p>📧 info@dgip.gov.pk</p>
+        <p class="en">📍 G-8/4, Islamabad, Pakistan</p>
+        <p class="ur">📍 جی-8/4، اسلام آباد</p>
+        <p class="en">⏰ Mon–Fri: 8:00 AM – 2:00 PM</p>
+        <p class="ur">⏰ پیر–جمعہ: صبح 8 – دوپہر 2</p>
+      </div>
+      <div class="fc reveal">
+        <h3 class="en">Important Links</h3>
+        <h3 class="ur">اہم روابط</h3>
+        <ul>
+          <li><a href="#" class="en">Ministry of Interior</a><a href="#" class="ur">وزارت داخلہ</a></li>
+          <li><a href="#" class="en">Government of Pakistan</a><a href="#" class="ur">حکومت پاکستان</a></li>
+          <li><a href="#" class="en">NADRA</a><a href="#" class="ur">نادرا</a></li>
+          <li><a href="#" class="en">Privacy Policy</a><a href="#" class="ur">رازداری کی پالیسی</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan. All Rights Reserved.</p>
+    <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان۔ جملہ حقوق محفوظ۔</p>
+    <p class="en">Developed by Ministry of Interior – IT Wing</p>
+    <p class="ur">تیار کردہ: وزارت داخلہ — آئی ٹی ونگ</p>
+  </div>
+</footer>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script>
+/* ══ SCROLL REVEAL ══ */
+const revealEls = document.querySelectorAll('.reveal,.reveal-fade,.reveal-scale,.reveal-left,.sec-head,.stats-bar');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+}, { threshold: 0.15 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+/* ══ STATS COUNTER ══ */
+let statsAnimated = false;
+const statsObserver = new IntersectionObserver((entries) => {
+  if(entries[0].isIntersecting && !statsAnimated){
+    statsAnimated = true;
+    document.querySelectorAll('.stat strong[data-target]').forEach(el => {
+      const target = parseFloat(el.dataset.target);
+      const suffix = el.dataset.suffix || '';
+      const start = performance.now();
+      function update(now){
+        const p = Math.min((now-start)/1400,1);
+        const e = 1-Math.pow(1-p,3);
+        el.textContent = Math.round(e*target)+suffix;
+        if(p<1) requestAnimationFrame(update);
+      }
+      requestAnimationFrame(update);
+    });
+  }
+}, { threshold: 0.5 });
+statsObserver.observe(document.getElementById('statsBar'));
+
+/* ══ HERO PARALLAX ══ */
+const heroImg = document.getElementById('heroImg');
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if(!ticking){ requestAnimationFrame(()=>{ heroImg.style.transform=`scale(1.08) translateY(${window.scrollY*.4}px)`; ticking=false; }); ticking=true; }
+}, {passive:true});
+
+/* ══ NAV SCROLL ══ */
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); }, {passive:true});
+
+/* ══ LIVE EFFECT 1: CLOUDS + PARTICLES ══ */
+(function(){
+  const c = document.getElementById('heroCanvas');
+  const ctx = c.getContext('2d');
+  const hero = c.parentElement;
+  let W, H;
+  function resize(){ W=c.width=hero.offsetWidth; H=c.height=hero.offsetHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // Soft cloud glows
+  const clouds = Array.from({length:6}, (_,i) => ({
+    x: Math.random()*W, y: 30+Math.random()*200,
+    w: 150+Math.random()*220, h: 50+Math.random()*60,
+    speed: 0.1+Math.random()*0.18,
+    op: 0.035+Math.random()*0.055
+  }));
+
+  // Gold particles
+  const particles = Array.from({length:50}, () => ({
+    x: Math.random()*W, y: Math.random()*H*0.85,
+    vx: (Math.random()-.5)*0.22, vy: -0.08-Math.random()*0.18,
+    r: Math.random()*1.6+0.4,
+    op: Math.random()*0.45+0.1,
+    gold: Math.random() > 0.55
+  }));
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // clouds
+    clouds.forEach(cl => {
+      cl.x += cl.speed;
+      if(cl.x > W+cl.w) cl.x = -cl.w;
+      const g = ctx.createRadialGradient(cl.x, cl.y, 0, cl.x, cl.y, cl.w*.55);
+      g.addColorStop(0, `rgba(212,175,55,${cl.op})`);
+      g.addColorStop(1, 'rgba(212,175,55,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.ellipse(cl.x, cl.y, cl.w*.55, cl.h*.45, 0, 0, Math.PI*2);
+      ctx.fill();
+    });
+    // particles
+    particles.forEach(pt => {
+      pt.x += pt.vx; pt.y += pt.vy;
+      if(pt.y < 0){ pt.y=H*.85; pt.x=Math.random()*W; }
+      if(pt.x<0) pt.x=W; if(pt.x>W) pt.x=0;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI*2);
+      ctx.fillStyle = pt.gold ? `rgba(212,175,55,${pt.op})` : `rgba(255,255,255,${pt.op*.4})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ══ LIVE EFFECT 2: SHIMMER LIGHTS ══ */
+(function(){
+  const c = document.getElementById('shimmerCanvas');
+  const ctx = c.getContext('2d');
+  const hero = c.parentElement;
+  let W;
+  function resize(){ W=c.width=hero.offsetWidth; c.height=80; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const lights = Array.from({length:32}, (_,i) => ({
+    x: 40+(i/31)*(W-80)*0.7 + W*0.15,
+    phase: Math.random()*Math.PI*2,
+    speed: 0.015+Math.random()*0.025,
+    size: 1.8+Math.random()*3,
+    baseOp: 0.25+Math.random()*0.45
+  }));
+
+  let t = 0;
+  function draw(){
+    ctx.clearRect(0,0,W,80);
+    t += 0.016;
+    lights.forEach(lt => {
+      const op = lt.baseOp*(0.4+0.6*Math.sin(t*lt.speed*60+lt.phase));
+      const g = ctx.createRadialGradient(lt.x,40,0, lt.x,40,lt.size*5);
+      g.addColorStop(0, `rgba(212,175,55,${op})`);
+      g.addColorStop(1, 'rgba(212,175,55,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(lt.x, 40, lt.size*5, 0, Math.PI*2);
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ══ URDU MODE: show/hide new section elements ══ */
+// Patch toggleLang to also handle new about/services sections
+const _origToggle = window.toggleLang;
+window.toggleLang = function(){
+  if(_origToggle) _origToggle();
+  const isUr = document.body.classList.contains('lang-ur');
+  // about new
+  document.querySelectorAll('.agc-title, .agc-body, .about-new-eyebrow, .about-new-title, .about-gold-bar, .lead-para, .svc-new-eyebrow, .svc-new-title, .svc-new-sub, .svc-new-card-title, .svc-new-tag, .svc-new-link').forEach(el => {
+    if(el.classList.contains('en')) el.style.display = isUr ? 'none' : '';
+    if(el.classList.contains('ur')) el.style.display = isUr ? '' : 'none';
+  });
+};
+
+/* ══ REDUCED MOTION ══ */
+if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  document.querySelectorAll('.reveal,.reveal-fade,.reveal-scale,.reveal-left').forEach(el=>{ el.style.transition='none'; el.classList.add('visible'); });
+}
+</script>
+</body>
+</html>

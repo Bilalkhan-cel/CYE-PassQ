@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passport Application – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+    <div class="nav-brand-text">
+      <strong class="en">Government of Pakistan</strong>
+      <strong class="ur">حکومت پاکستان</strong>
+      <span class="en">DGIP — Ministry of Interior</span>
+      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('home') }}" class="en">Home</a>
+    <a href="{{ url_for('home') }}" class="ur">ہوم</a>
+    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
+    <a href="{{ url_for('token_form') }}" class="active en">Application Form</a>
+    <a href="{{ url_for('token_form') }}" class="active ur">درخواست فارم</a>
+    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
+    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
+  </div>
+</nav>
+
+<div class="form-page">
+<div class="form-page-wrap">
+
+<div class="form-page-head">
+  <h2 class="en">📋 Passport Application Form</h2>
+  <h2 class="ur">📋 پاسپورٹ درخواست فارم</h2>
+  <p class="en">Fill all required fields carefully. Fields marked * are mandatory.</p>
+  <p class="ur">تمام ضروری خانے احتیاط سے بھریں۔ * والے خانے لازمی ہیں۔</p>
+</div>
+
+<form method="POST" enctype="multipart/form-data" class="passport-form" action="{{url_for('submit')}}" novalidate>
+    <div id="formAlert" class="form-alert" role="alert" {% if not form_error %}hidden{% endif %}>{{ form_error or '' }}</div>
+    {% if values %}
+    <div class="form-alert form-alert-info" role="status">
+        Your details have been kept. Please fix the fields marked in red and attach your documents again
+        (browsers do not keep uploaded files).
+    </div>
+    {% endif %}
+        <div class="form-section">
+            <div class="section-header">
+                <h3 data-en="Personal Information" data-ur="ذاتی معلومات"><i class="icon-person"></i>Personal Information</h3>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name" data-en="Full Name" data-ur="پورا نام">Full Name <span class="required">*</span></label>
+                    <input type="text" id="name" name="name" placeholder="Enter your complete name" maxlength="100"
+                           pattern="[A-Za-z][A-Za-z .'\-]*" title="English letters, spaces, dots, hyphens or apostrophes only" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                   <label for="age" data-en="Age" data-ur="عمر">Age <span class="required">*</span></label>
+                    <input type="text" id="age" name="age" placeholder="Filled from date of birth" inputmode="numeric"
+                           pattern="[0-9]{1,3}" readonly required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dob" data-en="Date of Birth" data-ur="تاریخ پیدائش">Date of Birth <span class="required">*</span></label>
+                    <input type="date" id="dob" name="dob" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="cnic" data-en="CNIC Number" data-ur="شناختی کارڈ نمبر">CNIC Number <span class="required">*</span></label>
+                    <input type="text" id="cnic" name="cnic" placeholder="XXXXX-XXXXXXX-X" pattern="[0-9]{5}-[0-9]{7}-[0-9]{1}" required>
+                </div>
+            </div>
+        </div>
+
+        <div id="under18" style="display:none;" class="form-section">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fcnic" data-en="Father CNIC Number" data-ur="والد کا شناختی کارڈ نمبر">Father CNIC Number <span class="required">*</span></label>
+                    <input type="text" id="fcnic" name="fcnic" placeholder="XXXXX-XXXXXXX-X" pattern="[0-9]{5}-[0-9]{7}-[0-9]{1}">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="mcnic" data-en="Mother CNIC Number" data-ur="والدہ کا شناختی کارڈ نمبر">Mother CNIC Number <span class="required">*</span></label>
+                    <input type="text" id="mcnic" name="mcnic" placeholder="XXXXX-XXXXXXX-X" pattern="[0-9]{5}-[0-9]{7}-[0-9]{1}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="terms" id="terms">
+                    <span data-en="Parental consent affirmation (for applicants under 18 years)" data-ur="والدین کی رضامندی کی تصدیق (18 سال سے کم درخواست دہندگان کے لیے)">Parental consent affirmation (for applicants under 18 years)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-header">
+                <h3 data-en="Address Information" data-ur="پتے کی معلومات"><i class="icon-location"></i>Address Information</h3>
+            </div>
+            <div class="form-row">
+                <div class="form-group full-width">
+                    <label for="address" data-en="Address" data-ur="پتہ">Address <span class="required">*</span></label>
+                    <textarea id="address" name="address" rows="3" placeholder="House/Street/Area etc" minlength="10" maxlength="250" required></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="province" data-en="Province" data-ur="صوبہ">Province <span class="required">*</span></label>
+                    <select id="province" name="province" required>
+                        <option value="" data-en="Select Your Province" data-ur="اپنا صوبہ منتخب کریں">Select Your Province</option>
+                        {% for p in provinces %}
+                        <option value="{{ p }}">{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="district" data-en="District" data-ur="ضلع">District <span class="required">*</span></label>
+                    <select id="district" name="district" required disabled>
+                        <option value="" data-en="Select Province First" data-ur="پہلے صوبہ منتخب کریں">Select Province First</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="city" data-en="City" data-ur="شہر">City <span class="required">*</span></label>
+                    <select id="city" name="city" required disabled>
+                        <option value="" data-en="Select District First" data-ur="پہلے ضلع منتخب کریں">Select District First</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="domicile" data-en="Domicile" data-ur="ڈومیسائل">Domicile <span class="required">*</span></label>
+                    <select id="domicile" name="domicile" required>
+                        <option value="" data-en="Select Domicile" data-ur="ڈومیسائل منتخب کریں">Select Domicile</option>
+                        {% for p in provinces %}
+                        <option value="{{ p }}">{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="branch" data-en="Select Branch" data-ur="برانچ منتخب کریں">Select Branch <span class="required">*</span></label>
+                    <select id="branch" name="branch" required disabled>
+                        <option value="" data-en="Select Province First" data-ur="پہلے صوبہ منتخب کریں">Select Province First</option>
+                    </select>
+                    <small class="field-hint" data-en="You can choose a branch in your province or in Islamabad." data-ur="آپ اپنے صوبے یا اسلام آباد کی برانچ منتخب کر سکتے ہیں۔">You can choose a branch in your province or in Islamabad.</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-header">
+                <h3 data-en="Contact Information" data-ur="رابطہ کی معلومات"><i class="icon-contact"></i>Contact Information</h3>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="email" data-en="Email Address" data-ur="ای میل پتہ">Email Address <span class="required">*</span></label>
+                    <input type="email" id="email" name="email" placeholder="example@domain.com" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group phone-group">
+                    <label for="phone" data-en="Phone Number" data-ur="فون نمبر">Phone Number <span class="required">*</span></label>
+                    <div class="phone-container">
+                        <select id="country_code" name="country_code" class="country-code">
+                            <option value="+92">🇵🇰 +92</option>
+                        </select>
+                        <input type="tel" id="phone" name="phone" inputmode="numeric" maxlength="10"
+                               pattern="3([0-4][0-9]|55)[0-9]{7}" placeholder="3001234567"
+                               title="Pakistani mobile number without 0, e.g. 3001234567" required>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="section-header">
+                <h3 data-en="Document Upload" data-ur="دستاویزات اپلوڈ کریں"><i class="icon-document"></i>Document Upload</h3>
+            </div>
+            <div class="upload-instructions">
+                <p data-en="📄 Please upload clear, colored scans or photos of the following documents:" data-ur="📄 براہ کرم درج ذیل دستاویزات کے واضح رنگین اسکین یا تصاویر اپلوڈ کریں:">📄 Please upload clear, colored scans or photos of the following documents:</p>
+                <ul>
+                    <li data-en="Image format: JPG, JPEG, PNG, or PDF" data-ur="تصویر کی شکل: JPG، JPEG، PNG، یا PDF">Image format: JPG, JPEG, PNG, or PDF</li>
+                    <li data-en="Maximum file size: 5MB per document" data-ur="زیادہ سے زیادہ فائل سائز: 5MB فی دستاویز">Maximum file size: 5MB per document</li>
+                    <li data-en="Ensure all text is clearly readable" data-ur="یقینی بنائیں کہ تمام متن واضح طور پر پڑھا جا سکے">Ensure all text is clearly readable</li>
+                </ul>
+            </div>
+
+            <div class="document-upload-group">
+                <h4 data-en="Applicant's CNIC" data-ur="درخواست دہندہ کا شناختی کارڈ">Applicant's CNIC <span class="required">*</span></h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cnic_front" data-en="CNIC Front Side" data-ur="شناختی کارڈ کا سامنے والا حصہ">CNIC Front Side <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="cnic_front" name="cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input" required>
+                            <label for="cnic_front" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_cnic_front"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="cnic_back" data-en="CNIC Back Side" data-ur="شناختی کارڈ کا پچھلا حصہ">CNIC Back Side <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="cnic_back" name="cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input" required>
+                            <label for="cnic_back" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_cnic_back"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="minor_documents" style="display:none;" class="document-upload-group">
+                <h4 data-en="Additional Documents (For Applicants Under 18)" data-ur="اضافی دستاویزات (18 سال سے کم درخواست دہندگان کے لیے)">Additional Documents (For Applicants Under 18) <span class="required">*</span></h4>
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label for="bform" data-en="B-Form / Child Registration Certificate" data-ur="بی فارم / بچے کی رجسٹریشن سرٹیفکیٹ">B-Form / Child Registration Certificate <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="bform" name="bform" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
+                            <label for="bform" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_bform"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="father_cnic_front" data-en="Father's CNIC Front" data-ur="والد کا شناختی کارڈ (سامنے)">Father's CNIC Front <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="father_cnic_front" name="father_cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
+                            <label for="father_cnic_front" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_father_cnic_front"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="father_cnic_back" data-en="Father's CNIC Back" data-ur="والد کا شناختی کارڈ (پیچھے)">Father's CNIC Back <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="father_cnic_back" name="father_cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
+                            <label for="father_cnic_back" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_father_cnic_back"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="mother_cnic_front" data-en="Mother's CNIC Front" data-ur="والدہ کا شناختی کارڈ (سامنے)">Mother's CNIC Front <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="mother_cnic_front" name="mother_cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
+                            <label for="mother_cnic_front" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_mother_cnic_front"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mother_cnic_back" data-en="Mother's CNIC Back" data-ur="والدہ کا شناختی کارڈ (پیچھے)">Mother's CNIC Back <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="mother_cnic_back" name="mother_cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
+                            <label for="mother_cnic_back" class="file-label">
+                                <span class="file-icon">📎</span>
+                                <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
+                            </label>
+                            <div class="file-preview" id="preview_mother_cnic_back"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="submit-section">
+            <p id="submitSummary" class="field-error submit-summary" role="alert"></p>
+            <button type="submit" class="submit-btn" data-en="Submit Application" data-ur="درخواست جمع کریں">
+                <i class="icon-submit"></i>
+                Submit Application
+            </button>
+        </div>
+    </form>
+
+</div><!-- form-page-wrap -->
+</div><!-- form-page -->
+
+<footer style="background:var(--green-dark);color:rgba(255,255,255,.45);text-align:center;padding:1rem;font-size:.82rem;margin-top:1rem;">
+  <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan</p>
+  <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان</p>
+</footer>
+
+<script>
+let isUrdu=false;
+function toggleLang(){
+  isUrdu=!isUrdu;
+  document.body.classList.toggle('urdu',isUrdu);
+  document.getElementById('navLang').textContent=isUrdu?'🌐 English':'🌐 اردو';
+}
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ageInput = document.getElementById("age");
+    const under18Fields = document.getElementById("under18");
+    const minorDocuments = document.getElementById("minor_documents");
+    const applicantCnicSection = document.querySelector('.document-upload-group');
+    
+    const fatherCnic = document.getElementById("fcnic");
+    const motherCnic = document.getElementById("mcnic");
+    const consent = document.getElementById("terms");
+    const bform = document.getElementById("bform");
+
+    const fatherCnicFront = document.getElementById("father_cnic_front");
+    const fatherCnicBack = document.getElementById("father_cnic_back");
+    const motherCnicFront = document.getElementById("mother_cnic_front");
+    const motherCnicBack = document.getElementById("mother_cnic_back");
+    const applicantCnicFront = document.getElementById("cnic_front");
+    const applicantCnicBack = document.getElementById("cnic_back");
+
+    // Age is calculated from date of birth so it always matches (the server checks this too).
+    const dobInput = document.getElementById("dob");
+    dobInput.max = new Date().toISOString().split("T")[0];
+    dobInput.addEventListener("change", function() {
+        const dob = new Date(this.value);
+        if (isNaN(dob)) { ageInput.value = ""; ageInput.dispatchEvent(new Event("input")); return; }
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        ageInput.value = age >= 0 ? age : "";
+        ageInput.dispatchEvent(new Event("input"));
+    });
+
+    // Province -> District -> City, and Branch limited to province + Islamabad.
+    const LOCATIONS = {{ locations | tojson }};
+    const BRANCHES = {{ branches | tojson }};
+    const ICT = {{ ict | tojson }};
+    const provinceSel = document.getElementById("province");
+    const districtSel = document.getElementById("district");
+    const citySel = document.getElementById("city");
+    const branchSel = document.getElementById("branch");
+
+    function fillSelect(sel, placeholder, values) {
+        sel.innerHTML = "";
+        const first = document.createElement("option");
+        first.value = ""; first.textContent = placeholder;
+        sel.appendChild(first);
+        values.forEach(v => {
+            const o = document.createElement("option");
+            o.value = v; o.textContent = v;
+            sel.appendChild(o);
+        });
+        sel.disabled = values.length === 0;
+    }
+
+    function fillBranches(province) {
+        branchSel.innerHTML = "";
+        const first = document.createElement("option");
+        first.value = "";
+        first.textContent = province ? "Select Branch" : "Select Province First";
+        branchSel.appendChild(first);
+        if (!province) { branchSel.disabled = true; return; }
+        const groups = {};
+        Object.entries(BRANCHES).forEach(([value, info]) => {
+            if (info.province !== province && info.province !== ICT) return;
+            (groups[info.city] = groups[info.city] || []).push(value);
+        });
+        Object.keys(groups).sort((a, b) => (a === "Islamabad") - (b === "Islamabad") || a.localeCompare(b))
+            .forEach(city => {
+                const g = document.createElement("optgroup");
+                g.label = city;
+                groups[city].forEach(v => {
+                    const o = document.createElement("option");
+                    o.value = v; o.textContent = v;
+                    g.appendChild(o);
+                });
+                branchSel.appendChild(g);
+            });
+        branchSel.disabled = false;
+    }
+
+    provinceSel.addEventListener("change", function() {
+        const districts = this.value ? Object.keys(LOCATIONS[this.value]).sort() : [];
+        fillSelect(districtSel, this.value ? "Select District" : "Select Province First", districts);
+        fillSelect(citySel, "Select District First", []);
+        fillBranches(this.value);
+    });
+
+    districtSel.addEventListener("change", function() {
+        const p = provinceSel.value;
+        const cities = (p && this.value) ? LOCATIONS[p][this.value] : [];
+        fillSelect(citySel, this.value ? "Select City" : "Select District First", cities);
+        if (cities.length === 1) citySel.value = cities[0];
+    });
+
+    ageInput.addEventListener("input", function() {
+        const age = parseInt(this.value);
+        if (age && age < 18) {
+            applicantCnicSection.style.display = "none";
+            under18Fields.style.display = "block";
+            minorDocuments.style.display = "block";
+            [fatherCnic, motherCnic, consent, bform, fatherCnicFront, fatherCnicBack, motherCnicFront, motherCnicBack]
+                .forEach(el => { el.disabled = false; el.required = true; });
+            [applicantCnicFront, applicantCnicBack].forEach(el => { el.disabled = true; el.required = false; });
+        } else {
+            applicantCnicSection.style.display = "block";
+            under18Fields.style.display = "none";
+            minorDocuments.style.display = "none";
+            [applicantCnicFront, applicantCnicBack].forEach(el => { el.disabled = false; el.required = true; });
+            [fatherCnic, motherCnic, consent, bform, fatherCnicFront, fatherCnicBack, motherCnicFront, motherCnicBack]
+                .forEach(el => { el.disabled = true; el.required = false; });
+        }
+    });
+});
+
+function handleFilePreview(input, previewId) {
+    const file = input.files[0];
+    const preview = document.getElementById(previewId);
+    if (file) {
+        const fileName = file.name;
+        const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        if (fileSize > 5) {
+            alert('File size exceeds 5MB. Please choose a smaller file.');
+            input.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        const fileType = file.type;
+        if (fileType.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<div class="preview-container"><img src="${e.target.result}" alt="Preview" class="preview-image"><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')">✕ Remove</button></div></div>`;
+            };
+            reader.readAsDataURL(file);
+        } else if (fileType === 'application/pdf') {
+            preview.innerHTML = `<div class="preview-container"><div class="pdf-icon">📄</div><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')">✕ Remove</button></div></div>`;
+        }
+        input.parentElement.classList.add('file-selected');
+    }
+}
+
+function removeFile(inputId, previewId) {
+    const input = document.getElementById(inputId);
+    const preview = document.getElementById(previewId);
+    input.value = '';
+    preview.innerHTML = '';
+    input.parentElement.classList.remove('file-selected');
+}
+
+const fileInputs = [
+    { id: 'cnic_front', preview: 'preview_cnic_front' },
+    { id: 'cnic_back', preview: 'preview_cnic_back' },
+    { id: 'bform', preview: 'preview_bform' },
+    { id: 'father_cnic_front', preview: 'preview_father_cnic_front' },
+    { id: 'father_cnic_back', preview: 'preview_father_cnic_back' },
+    { id: 'mother_cnic_front', preview: 'preview_mother_cnic_front' },
+    { id: 'mother_cnic_back', preview: 'preview_mother_cnic_back' }
+];
+
+fileInputs.forEach(fileInput => {
+    const input = document.getElementById(fileInput.id);
+    if (input) {
+        input.addEventListener('change', function() {
+            handleFilePreview(this, fileInput.preview);
+        });
+    }
+});
+
+document.querySelectorAll('.file-upload-wrapper').forEach(wrapper => {
+    const input = wrapper.querySelector('.file-input');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        wrapper.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(eventName => {
+        wrapper.addEventListener(eventName, () => wrapper.classList.add('highlight'), false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+        wrapper.addEventListener(eventName, () => wrapper.classList.remove('highlight'), false);
+    });
+    wrapper.addEventListener('drop', function(e) {
+        const files = e.dataTransfer.files;
+        input.files = files;
+        handleFilePreview(input, 'preview_' + input.id);
+    }, false);
+});
+</script>
+<script>
+// ── Live validation ─────────────────────────────────────────────────────────
+// Every change is checked by the server's own rules (/validate_form), so what
+// you see while typing is exactly what /submit will accept.
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form.passport-form");
+    const submitBtn = form.querySelector(".submit-btn");
+    const summary = document.getElementById("submitSummary");
+    const alertBox = document.getElementById("formAlert");
+    const VALIDATE_URL = {{ url_for('validate_form') | tojson }};
+    const SERVER_VALUES = {{ values | tojson }};
+    const SERVER_ERRORS = {{ errors | tojson }};
+
+    const FIELDS = ["name", "dob", "age", "cnic", "fcnic", "mcnic", "terms", "address",
+                    "province", "district", "city", "domicile", "branch", "email", "phone"];
+    const FILE_FIELDS = ["cnic_front", "cnic_back", "bform", "father_cnic_front",
+                         "father_cnic_back", "mother_cnic_front", "mother_cnic_back"];
+    const FILE_TYPES = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+
+    const touched = new Set();
+    let errors = {};
+    let seq = 0, timer = null, restoring = false;
+
+    const el = name => form.elements[name];
+
+    function messageFor(input) {
+        const group = input.closest(".form-group") || input.parentElement;
+        let m = group.querySelector(":scope > .field-error");
+        if (!m) {
+            m = document.createElement("small");
+            m.className = "field-error";
+            m.setAttribute("aria-live", "polite");
+            group.appendChild(m);
+        }
+        return m;
+    }
+
+    function setState(input, error, showValid) {
+        const box = input.type === "file" ? input.closest(".file-upload-wrapper") : input;
+        box.classList.toggle("is-invalid", !!error);
+        box.classList.toggle("is-valid", !error && showValid);
+        input.setAttribute("aria-invalid", error ? "true" : "false");
+        messageFor(input).textContent = error || "";
+    }
+
+    function fileError(input) {
+        if (input.disabled) return "";
+        const f = input.files && input.files[0];
+        if (!f) return input.required ? "Please upload this document." : "";
+        if (!FILE_TYPES.includes(f.type)) return "Only JPG, PNG or PDF files are allowed.";
+        if (f.size > 5 * 1024 * 1024) return "File must be 5 MB or smaller.";
+        return "";
+    }
+
+    function render() {
+        let count = 0;
+        FIELDS.forEach(name => {
+            const input = el(name);
+            if (!input) return;
+            if (input.disabled || !touched.has(name)) { setState(input, "", false); return; }
+            let err = errors[name] || "";
+            if (name === "age" && errors.dob) err = "";        // the DOB message already explains it
+            if (err) count++;
+            const hasValue = input.type === "checkbox" ? input.checked : input.value !== "";
+            setState(input, err, hasValue && input.type !== "checkbox");
+        });
+        FILE_FIELDS.forEach(name => {
+            const input = el(name);
+            if (!input) return;
+            if (input.disabled || !touched.has(name)) { setState(input, "", false); return; }
+            const err = fileError(input);
+            if (err) count++;
+            setState(input, err, !!(input.files && input.files.length));
+        });
+        if (count === 0) summary.textContent = "";
+        else if (summary.textContent) {
+            summary.textContent = `Please correct the ${count} field${count > 1 ? "s" : ""} marked in red.`;
+        }
+        return count;
+    }
+
+    function showFormError(msg) {
+        alertBox.hidden = !msg;
+        alertBox.textContent = msg || "";
+    }
+
+    async function validateNow() {
+        clearTimeout(timer);
+        const mine = ++seq;
+        const data = new FormData(form);
+        FILE_FIELDS.forEach(n => data.delete(n));           // never upload files just to validate
+        try {
+            const res = await fetch(VALIDATE_URL, { method: "POST", body: data });
+            const json = await res.json();
+            if (mine !== seq) return null;                  // a newer check is on its way
+            errors = json.errors || {};
+            showFormError(json.form_error);
+            render();
+            return json;
+        } catch (e) {
+            return null;                                    // server unreachable: /submit still validates
+        }
+    }
+
+    function validateSoon() {
+        clearTimeout(timer);
+        timer = setTimeout(validateNow, 300);
+    }
+
+    // ── Input helpers: format as you type ──
+    function formatCnic(input) {
+        const d = input.value.replace(/\D/g, "").slice(0, 13);
+        let out = d.slice(0, 5);
+        if (d.length > 5) out += "-" + d.slice(5, 12);
+        if (d.length > 12) out += "-" + d.slice(12);
+        input.value = out;
+    }
+    ["cnic", "fcnic", "mcnic"].forEach(n => {
+        const input = el(n);
+        input.maxLength = 15;
+        input.setAttribute("inputmode", "numeric");
+        input.addEventListener("input", () => formatCnic(input));
+    });
+    el("phone").addEventListener("input", function () {
+        let d = this.value.replace(/\D/g, "");
+        if (d.startsWith("92") && d.length > 10) d = d.slice(2);
+        if (d.startsWith("0")) d = d.slice(1);
+        this.value = d.slice(0, 10);
+    });
+
+    // ── When to check ──
+    function touch(name) {
+        if (!name) return;
+        touched.add(name);
+        if (name === "dob") touched.add("age");
+    }
+
+    form.addEventListener("input", e => {
+        if (restoring || e.target.type === "file") return;
+        touch(e.target.name);
+        validateSoon();
+    });
+
+    form.addEventListener("change", e => {
+        if (restoring) return;
+        const name = e.target.name;
+        if (e.target.type === "file") { touch(name); render(); return; }
+        // Choosing a new province resets the fields below it; don't shout about them yet.
+        if (name === "province") ["district", "city", "branch"].forEach(n => touched.delete(n));
+        if (name === "district") { touched.delete("city"); if (el("city").value) touched.add("city"); }
+        touch(name);
+        validateNow();
+    });
+
+    form.addEventListener("focusout", e => {
+        if (restoring || !e.target.name || e.target.type === "file") return;
+        if (!touched.has(e.target.name)) { touch(e.target.name); validateNow(); }
+    });
+
+    // ── Submit: only send when everything is valid ──
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        FIELDS.concat(FILE_FIELDS).forEach(n => touched.add(n));
+        const label = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Checking…";
+        const result = await validateNow();
+        summary.textContent = " ";                          // enables the count message in render()
+        const bad = render();
+        if (result === null || (result.valid && !result.form_error && bad === 0)) {
+            submitBtn.textContent = "Submitting…";
+            form.submit();                                  // server validates again and issues the token
+            return;
+        }
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = label;
+        if (bad === 0) summary.textContent = "";
+        const first = form.querySelector(".is-invalid");
+        if (first) {
+            first.scrollIntoView({ behavior: "smooth", block: "center" });
+            const focusable = first.matches("input,select,textarea") ? first : first.querySelector("input");
+            if (focusable && focusable.type !== "file") focusable.focus({ preventScroll: true });
+        } else if (result.form_error) {
+            alertBox.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    });
+
+    // ── Came back from a rejected submit: refill everything and mark the errors ──
+    if (Object.keys(SERVER_VALUES).length) {
+        restoring = true;
+        const set = (n, v) => { const i = el(n); if (i && v != null) i.value = v; };
+        const fire = (n, ev) => el(n).dispatchEvent(new Event(ev));
+        ["name", "cnic", "email", "phone", "address", "domicile"].forEach(n => set(n, SERVER_VALUES[n]));
+        set("dob", SERVER_VALUES.dob); fire("dob", "change");            // fills age + shows minor fields
+        set("fcnic", SERVER_VALUES.fcnic); set("mcnic", SERVER_VALUES.mcnic);
+        if (el("terms")) el("terms").checked = !!SERVER_VALUES.terms;
+        set("province", SERVER_VALUES.province); fire("province", "change");
+        set("district", SERVER_VALUES.district); fire("district", "change");
+        set("city", SERVER_VALUES.city);
+        set("branch", SERVER_VALUES.branch);
+        restoring = false;
+        FIELDS.concat(FILE_FIELDS).forEach(n => touched.add(n));
+        errors = SERVER_ERRORS || {};
+        summary.textContent = " ";
+        render();
+        const first = form.querySelector(".is-invalid");
+        if (first) first.scrollIntoView({ block: "center" });
+        // Re-check the refilled form: drop errors that no longer apply (e.g. age is
+        // recalculated), but keep the server's more specific wording where still wrong.
+        validateNow().then(json => {
+            if (!json) return;
+            Object.keys(SERVER_ERRORS || {}).forEach(k => { if (errors[k]) errors[k] = SERVER_ERRORS[k]; });
+            render();
+        });
+    }
+});
+</script>
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+</body>
+</html>

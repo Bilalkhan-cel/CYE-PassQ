@@ -1,0 +1,29 @@
+{% extends "auth_base.html" %}
+{% block title %}Verify Email – DGIP Pakistan{% endblock %}
+
+{% block welcome %}
+  <h2 class="en">Verify your email</h2>
+  <h2 class="ur">اپنی ای میل کی تصدیق کریں</h2>
+  <p class="en">Enter the 6-digit code we sent to <strong>{{ masked_email }}</strong>. It expires in 10 minutes.</p>
+  <p class="ur"><strong>{{ masked_email }}</strong> پر بھیجا گیا 6 ہندسوں کا کوڈ درج کریں۔ یہ 10 منٹ میں ختم ہو جائے گا۔</p>
+{% endblock %}
+
+{% block content %}
+<form method="POST" action="{{ url_for('verify_email') }}">
+  <div class="f-group">
+    <label class="f-label en" for="code">Verification Code</label>
+    <label class="f-label ur" for="code">تصدیقی کوڈ</label>
+    <input class="f-input otp-input" type="text" id="code" name="code" inputmode="numeric"
+           autocomplete="one-time-code" maxlength="6" pattern="\d{6}" placeholder="••••••" required autofocus>
+  </div>
+  <button type="submit" class="f-submit en">Verify &amp; Create Account</button>
+  <button type="submit" class="f-submit ur">تصدیق کریں اور اکاؤنٹ بنائیں</button>
+</form>
+
+<form method="POST" action="{{ url_for('resend_otp', purpose='signup') }}" class="otp-resend">
+  <span class="en">Didn't get it? Check spam, or</span>
+  <span class="ur">کوڈ نہیں ملا؟ اسپام دیکھیں، یا</span>
+  <button type="submit" class="link-btn en">send a new code</button>
+  <button type="submit" class="link-btn ur">نیا کوڈ بھیجیں</button>
+</form>
+{% endblock %}

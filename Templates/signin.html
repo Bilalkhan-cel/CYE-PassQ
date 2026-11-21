@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+
+  <!-- ══ LEFT IMAGE ══ -->
+  <div class="auth-left">
+    <img class="bg" src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="Faisal Masjid">
+    <a href="{{ url_for('home') }}" class="auth-badge">
+      <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+      <div>
+        <strong class="en">DGIP Portal</strong>
+        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <span class="en">Ministry of Interior, Pakistan</span>
+        <span class="ur">وزارت داخلہ، پاکستان</span>
+      </div>
+    </a>
+    <div class="auth-caption">
+      <h2 class="en">Your Gateway to<br>Travel Documentation.</h2>
+      <h2 class="ur">سفری دستاویزات کا<br>آپ کا دروازہ۔</h2>
+      <p class="en">Secure passport services for Pakistani citizens — available online, anytime.</p>
+      <p class="ur">پاکستانی شہریوں کے لیے محفوظ پاسپورٹ خدمات — آن لائن، کسی بھی وقت۔</p>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT FORM ══ -->
+  <div class="auth-right">
+    <div class="auth-box">
+
+      <!-- Top: logo + lang toggle -->
+      <div class="auth-box-top">
+        <div class="auth-box-brand">
+          <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+          <div>
+            <strong class="en">GOVERNMENT OF PAKISTAN</strong>
+            <strong class="ur">حکومت پاکستان</strong>
+            <span class="en">Directorate General of Immigration &amp; Passports</span>
+            <span class="ur">ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس</span>
+          </div>
+        </div>
+        <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active en" onclick="">Sign In</button>
+        <button class="auth-tab active ur" onclick="">سائن ان</button>
+        <button class="auth-tab en" onclick="window.location='{{ url_for('signup') }}'">Register</button>
+        <button class="auth-tab ur" onclick="window.location='{{ url_for('signup') }}'">رجسٹر</button>
+      </div>
+
+      <!-- Welcome -->
+      <div class="auth-welcome">
+        <h2 class="en">Welcome back</h2>
+        <h2 class="ur">خوش آمدید</h2>
+        <p class="en">Sign in to access your passport services.</p>
+        <p class="ur">اپنی پاسپورٹ خدمات تک رسائی کے لیے سائن ان کریں۔</p>
+      </div>
+
+      <!-- Flash -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}{% endif %}
+      {% endwith %}
+
+      <!-- Form -->
+      <form method="POST">
+        <div class="f-group">
+          <label class="f-label en">CNIC Number</label>
+          <label class="f-label ur">شناختی کارڈ نمبر</label>
+          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="1234567890123 (no dashes)" required autocomplete="off">
+          <span class="f-hint en">Enter your 13-digit national identity number</span>
+          <span class="f-hint ur">اپنا 13 ہندسوں کا شناختی کارڈ نمبر درج کریں</span>
+        </div>
+        <div class="f-group">
+          <label class="f-label en">Password</label>
+          <label class="f-label ur">پاس ورڈ</label>
+          <input class="f-input" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+          <a href="{{ url_for('forgot_password') }}" class="f-hint forgot-link en">Forgot password?</a>
+          <a href="{{ url_for('forgot_password') }}" class="f-hint forgot-link ur">پاس ورڈ بھول گئے؟</a>
+        </div>
+        <button type="submit" class="f-submit en">Sign In</button>
+        <button type="submit" class="f-submit ur">سائن ان کریں</button>
+      </form>
+
+      <div class="auth-footer">
+        <p class="en">Don't have an account? <a href="{{ url_for('signup') }}">Register here</a></p>
+        <p class="ur">اکاؤنٹ نہیں ہے؟ <a href="{{ url_for('signup') }}">یہاں رجسٹر کریں</a></p>
+        <p style="margin-top:.5rem;">
+          <a href="{{ url_for('home') }}" class="en" style="color:var(--text-muted); font-size:12px;">← Back to Home</a>
+          <a href="{{ url_for('home') }}" class="ur" style="color:var(--text-muted); font-size:12px;">← ہوم پر واپس</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script>
+document.getElementById('cnic').addEventListener('input', function(e) {
+  let v = e.target.value.replace(/\D/g,'');
+  if(v.length>5) v = v.slice(0,5)+'-'+v.slice(5);
+  if(v.length>13) v = v.slice(0,13)+'-'+v.slice(13,14);
+  e.target.value = v;
+});
+</script>
+</body>
+</html>

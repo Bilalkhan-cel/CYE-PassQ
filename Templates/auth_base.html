@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}DGIP Pakistan{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="auth-page">
+
+  <div class="auth-left">
+    <img class="bg" src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="Faisal Masjid">
+    <a href="{{ url_for('home') }}" class="auth-badge">
+      <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+      <div>
+        <strong class="en">DGIP Portal</strong>
+        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <span class="en">Ministry of Interior, Pakistan</span>
+        <span class="ur">وزارت داخلہ، پاکستان</span>
+      </div>
+    </a>
+    <div class="auth-caption">
+      <h2 class="en">Your Gateway to<br>Travel Documentation.</h2>
+      <h2 class="ur">سفری دستاویزات کا<br>آپ کا دروازہ۔</h2>
+      <p class="en">Secure passport services for Pakistani citizens — available online, anytime.</p>
+      <p class="ur">پاکستانی شہریوں کے لیے محفوظ پاسپورٹ خدمات — آن لائن، کسی بھی وقت۔</p>
+    </div>
+  </div>
+
+  <div class="auth-right">
+    <div class="auth-box">
+      <div class="auth-box-top">
+        <div class="auth-box-brand">
+          <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+          <div>
+            <strong class="en">GOVERNMENT OF PAKISTAN</strong>
+            <strong class="ur">حکومت پاکستان</strong>
+            <span class="en">Directorate General of Immigration &amp; Passports</span>
+            <span class="ur">ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس</span>
+          </div>
+        </div>
+        <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+      </div>
+
+      <div class="auth-welcome">{% block welcome %}{% endblock %}</div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for cat, msg in messages %}
+        <div class="flash flash-{{ cat }}">{{ msg }}</div>
+      {% endfor %}{% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+
+      <div class="auth-footer">
+        <p><a href="{{ url_for('signin') }}" class="en">← Back to Sign In</a>
+           <a href="{{ url_for('signin') }}" class="ur">← سائن ان پر واپس</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script>
+// Codes are digits only.
+document.querySelectorAll('input[name="code"]').forEach(function (i) {
+  i.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 6); });
+});
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application Error – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+    <div class="nav-brand-text">
+      <strong class="en">Government of Pakistan</strong>
+      <strong class="ur">حکومت پاکستان</strong>
+      <span class="en">DGIP — Ministry of Interior</span>
+      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
+  </div>
+</nav>
+
+<div class="ty-wrap">
+  <div class="ty-card">
+    <div class="ty-icon">❌</div>
+    <h1 class="en" style="color:var(--error);">Application Not Processed</h1>
+    <h1 class="ur" style="color:var(--error);">درخواست پر کارروائی نہیں ہو سکی</h1>
+    <p class="en">Dear <strong>{{ name }}</strong>, your application could not be submitted due to the following issue(s).</p>
+    <p class="ur">محترم <strong>{{ name }}</strong>، ذیل کی وجوہات کی بنا پر آپ کی درخواست جمع نہیں ہو سکی۔</p>
+
+    <div class="ty-summary" style="border-left:3px solid var(--error);">
+      <h3 class="en" style="color:var(--error);">Validation Failed</h3>
+      <h3 class="ur" style="color:var(--error);">تصدیق ناکام</h3>
+      <p class="en" style="font-size:.9rem;color:var(--text-muted);">{{ reason }}</p>
+      <p class="ur" style="font-size:.9rem;color:var(--text-muted);">{{ reason_ur | default(reason) }}</p>
+    </div>
+
+    {% if field_errors %}
+    <div class="ty-summary">
+      <h3 class="en">Fields Requiring Correction</h3>
+      <h3 class="ur">درست کرنے والے خانے</h3>
+      {% for field, msg in field_errors.items() %}
+      {% if msg %}
+      <div class="ty-row">
+        <span>{{ field }}</span>
+        <span style="color:var(--error);">{{ msg }}</span>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <p class="en" style="font-size:.9rem;">Please go back, correct the highlighted fields, and resubmit your application. No data has been saved.</p>
+    <p class="ur" style="font-size:.9rem;">براہ کرم واپس جائیں، نشان زد خانے درست کریں اور دوبارہ درخواست جمع کریں۔ کوئی ڈیٹا محفوظ نہیں ہوا۔</p>
+
+    <div class="ty-summary">
+      <h3 class="en">Attempt Summary</h3>
+      <h3 class="ur">کوشش کا خلاصہ</h3>
+      <div class="ty-row">
+        <span class="en">Applicant</span><span class="ur">درخواست دہندہ</span>
+        <span>{{ name }}</span>
+      </div>
+      <div class="ty-row">
+        <span class="en">Date</span><span class="ur">تاریخ</span>
+        <span>{{ submission_date }}</span>
+      </div>
+      <div class="ty-row">
+        <span class="en">Status</span><span class="ur">حیثیت</span>
+        <span style="color:var(--error);font-weight:700;">
+          <span class="en">Not Submitted ✗</span><span class="ur">جمع نہیں ہوئی ✗</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="ty-btns">
+      <a href="javascript:history.back()" class="btn btn-primary en">✏️ Fix and Resubmit</a>
+      <a href="javascript:history.back()" class="btn btn-primary ur">✏️ درست کریں اور دوبارہ جمع کریں</a>
+      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green en">📋 Start New Application</a>
+      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green ur">📋 نئی درخواست شروع کریں</a>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+</body>
+</html>

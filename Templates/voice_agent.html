@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>پاسپورٹ ٹوکن اسسٹنٹ</title>
+<style>
+  body { font-family: "Noto Nastaliq Urdu", Tahoma, sans-serif; background:#f4f5f7; margin:0; padding:0; }
+  .chat-wrap { max-width:560px; margin:24px auto; background:#fff; border-radius:12px;
+               box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column; height:80vh; }
+  .chat-log { flex:1; overflow-y:auto; padding:16px; }
+  .bubble { max-width:80%; margin:8px 0; padding:10px 14px; border-radius:14px; line-height:1.6; }
+  .agent  { background:#eef2ff; margin-right:auto; }
+  .user   { background:#1d4ed8; color:#fff; margin-left:auto; }
+  .status { text-align:center; font-size:13px; color:#888; padding:6px; }
+  .input-row { display:flex; border-top:1px solid #eee; padding:10px; gap:8px; }
+  .input-row input { flex:1; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; }
+  .input-row button { padding:10px 18px; border:none; border-radius:8px; background:#1d4ed8; color:#fff; cursor:pointer; font-family:inherit; }
+  .input-row button:disabled { background:#aaa; cursor:not-allowed; }
+
+  /* Mic button: outlined by default, filled red + pulsing while listening */
+  .mic-btn { background:#fff !important; border:1px solid #ddd; color:#1d4ed8; font-size:17px; padding:10px 14px !important; }
+  .mic-btn:disabled { color:#bbb; border-color:#eee; background:#fff !important; }
+  .mic-btn.mic-active { background:#dc2626 !important; border-color:#dc2626; color:#fff; animation: mic-pulse 1.2s infinite; }
+  @keyframes mic-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(220,38,38,.45); }
+    70%  { box-shadow: 0 0 0 9px rgba(220,38,38,0); }
+    100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+  }
+
+  /* Clickable option buttons for choice-style questions (province, city,
+     district, domicile, branch) - rendered under the agent's bubble. */
+  .choice-row { display:flex; flex-wrap:wrap; gap:8px; max-width:85%; margin:0 0 10px auto; }
+  .choice-btn { padding:8px 14px; border-radius:18px; border:1px solid #1d4ed8; background:#fff;
+                color:#1d4ed8; font-size:14px; cursor:pointer; font-family:inherit; }
+  .choice-btn:hover:not(:disabled) { background:#eef2ff; }
+  .choice-btn:disabled { opacity:.45; cursor:not-allowed; }
+  .choice-btn.choice-btn-selected { background:#1d4ed8; color:#fff; opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="chat-wrap">
+  <div class="status" id="status">رابطہ قائم ہو رہا ہے...</div>
+  <div class="chat-log" id="chatLog"></div>
+  <div class="input-row">
+    <button id="micBtn" class="mic-btn" title="بول کر جواب دیں" disabled>🎤</button>
+    <input id="textInput" type="text" placeholder="اپنا جواب یہاں لکھیں..." disabled>
+    <button id="sendBtn" disabled>بھیجیں</button>
+  </div>
+</div>
+
+<audio id="agentAudio" autoplay></audio>
+
+<script>
+// =============================================================================
+// Injected server-side by Flask (see README for the route). Never hardcode
+// your real API key directly in a committed static .js file - render it
+// through a template like this instead, and treat this page itself as
+// sensitive (auth-gate it) since anyone who can view the page source can
+// see the key embedded here. See README "Security note" for hardening options.
+// =============================================================================
+const OPENHOME_API_KEY = "{{ openhome_api_key }}";
+const OPENHOME_AGENT_ID = "{{ openhome_agent_id }}";
+
+const WS_URL = `wss://app.openhome.com/websocket/voice-stream/${OPENHOME_API_KEY}/${OPENHOME_AGENT_ID}`;
+
+const statusEl = document.getElementById("status");
+const chatLog = document.getElementById("chatLog");
+const textInput = document.getElementById("textInput");
+const sendBtn = document.getElementById("sendBtn");
+const micBtn = document.getElementById("micBtn");
+const audioEl = document.getElementById("agentAudio");
+
+let ws = null;
+let mediaSource = null;
+let sourceBuffer = null;
+let audioQueue = [];
+let liveBubble = null; // the in-progress agent bubble, updated as tokens stream in
+
+function addBubble(role, text) {
+  const div = document.createElement("div");
+  div.className = "bubble " + (role === "user" ? "user" : "agent");
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+function setInputEnabled(enabled) {
+  textInput.disabled = !enabled;
+  sendBtn.disabled = !enabled;
+  micBtn.disabled = !enabled || !recognizer; // stays off if this browser has no mic support
+  if (!enabled && isListening) stopListening();
+  // Any option buttons still on screen (not yet picked) follow the same
+  // turn-taking rule as the text box and mic - live only when it's the
+  // citizen's turn to answer.
+  document.querySelectorAll(".choice-btn:not(.choice-btn-selected)")
+    .forEach(b => b.disabled = !enabled);
+}
+
+// ---- Audio playback: the agent's TTS arrives as base64 mp3 chunks over the
+// socket. MediaSource lets the <audio> element play them as they stream in. ----
+function initAudioPipeline() {
+  mediaSource = new MediaSource();
+  audioEl.src = URL.createObjectURL(mediaSource);
+  mediaSource.addEventListener("sourceopen", () => {
+    sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+    sourceBuffer.mode = "sequence";
+    sourceBuffer.addEventListener("updateend", drainAudioQueue);
+  });
+}
+
+function drainAudioQueue() {
+  if (sourceBuffer && !sourceBuffer.updating && audioQueue.length > 0) {
+    sourceBuffer.appendBuffer(audioQueue.shift());
+  }
+}
+
+function queueAudioChunk(base64Data) {
+  const binary = atob(base64Data);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  audioQueue.push(bytes);
+  drainAudioQueue();
+  audioEl.play().catch(() => {}); // browsers may block autoplay until first user click
+}
+
+// ---------------------------------------------------------------------------
+// Clickable options for choice-style questions (province / city / district /
+// domicile / branch). The Ability (generate_passport_token_2.py) doesn't
+// send any special "these are buttons" message - it just speaks/writes a
+// plain sentence like:
+//   "شہر کونسا ہے؟ براہ کرم صرف نمبر بول کر بتائیں: نمبر 1 راولپنڈی، نمبر 2 لاہور۔"
+// (see ask_choice() in the Ability). We parse that same sentence for the
+// repeating "نمبر <N> <option>" pattern and turn it into tappable buttons,
+// so nothing about the Ability's protocol needs to change. Clicking a
+// button sends the option's number back as a "transcribed" message, exactly
+// like a typed or spoken number would - ask_choice() picks it up immediately.
+// ---------------------------------------------------------------------------
+function renderChoicesIfAny(bubbleDiv, text) {
+  const re = /نمبر\s*(\d+)\s+([^،۔]+)/g;
+  const options = [];
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    options.push({ num: m[1], label: m[2].trim() });
+  }
+  if (options.length < 2) return; // not a numbered-choice message, leave as plain text
+
+  const row = document.createElement("div");
+  row.className = "choice-row";
+  options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = opt.label;
+    btn.disabled = textInput.disabled; // match current turn-taking state
+    btn.addEventListener("click", () => sendChoice(row, btn, opt));
+    row.appendChild(btn);
+  });
+  bubbleDiv.insertAdjacentElement("afterend", row);
+  chatLog.scrollTop = chatLog.scrollHeight;
+}
+
+function sendChoice(row, btn, opt) {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  row.querySelectorAll("button").forEach(b => (b.disabled = true));
+  btn.classList.add("choice-btn-selected");
+
+  addBubble("user", opt.label);
+  ws.send(JSON.stringify({ type: "transcribed", data: opt.num }));
+  setInputEnabled(false); // wait for the agent's next question, same as typed/spoken answers
+}
+
+// ---------------------------------------------------------------------------
+// Speech-to-text (browser microphone), as an alternative to typing - not a
+// replacement for it. Uses the browser's built-in Web Speech API, so no
+// audio is streamed anywhere new; recognition happens locally and only the
+// resulting text is sent, over the same "transcribed" message typing already
+// uses. Only Chromium-based browsers (Chrome/Edge) support this today; on
+// other browsers the mic button stays hidden and typing still works fine.
+// ---------------------------------------------------------------------------
+const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognizer = null;
+let isListening = false;
+
+function initSpeechRecognition() {
+  if (!SpeechRecognitionImpl) {
+    micBtn.style.display = "none";
+    return;
+  }
+  recognizer = new SpeechRecognitionImpl();
+  recognizer.lang = "ur-PK"; // switch to "en-US" if your citizens will answer in English/roman-Urdu
+  recognizer.continuous = false;
+  recognizer.interimResults = true;
+
+  recognizer.onstart = () => {
+    isListening = true;
+    micBtn.classList.add("mic-active");
+    micBtn.textContent = "⏹";
+    statusEl.textContent = "سن رہا ہوں... بولیں";
+  };
+
+  recognizer.onresult = (event) => {
+    let finalText = "";
+    let interimText = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalText += transcript;
+      else interimText += transcript;
+    }
+    textInput.value = finalText || interimText;
+    if (finalText.trim()) {
+      recognizer.stop();
+      sendTypedAnswer(); // submit the spoken answer exactly like a typed one
+    }
+  };
+
+  recognizer.onerror = () => {
+    statusEl.textContent = "آواز سمجھ نہیں آئی، دوبارہ کوشش کریں یا ٹائپ کر دیں۔";
+  };
+
+  recognizer.onend = () => {
+    isListening = false;
+    micBtn.classList.remove("mic-active");
+    micBtn.textContent = "🎤";
+  };
+}
+
+function stopListening() {
+  if (recognizer && isListening) recognizer.stop();
+}
+
+function toggleMic() {
+  if (!recognizer || micBtn.disabled) return;
+  if (isListening) {
+    recognizer.stop();
+  } else {
+    textInput.value = "";
+    recognizer.start();
+  }
+}
+
+// ---- WebSocket wiring ----
+function connect() {
+  ws = new WebSocket(WS_URL);
+
+  ws.onopen = () => {
+    statusEl.textContent = "منسلک ہو گیا - ایجنٹ کے بولنے کا انتظار کریں";
+    initAudioPipeline();
+  };
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === "message" && msg.data.role === "assistant") {
+      // Streamed assistant text: msg.data.live=true while still streaming,
+      // final content arrives once live turns false.
+      if (!liveBubble) liveBubble = addBubble("agent", "");
+      liveBubble.textContent = msg.data.content;
+      chatLog.scrollTop = chatLog.scrollHeight;
+      if (!msg.data.live) {
+        renderChoicesIfAny(liveBubble, msg.data.content); // turn "نمبر 1 X، نمبر 2 Y" into buttons
+        liveBubble = null; // next assistant turn starts a fresh bubble
+      }
+    }
+
+    else if (msg.type === "audio") {
+      queueAudioChunk(msg.data);
+      // Per protocol, acknowledge receipt of each audio chunk.
+      ws.send(JSON.stringify({ type: "ack", data: "audio-received" }));
+    }
+
+    else if (msg.type === "text") {
+      // Playback lifecycle signals from the server.
+      if (msg.data === "audio-init") {
+        setInputEnabled(false); // agent is about to speak - wait for it to finish
+        ws.send(JSON.stringify({ type: "text", data: "bot-speaking" }));
+      } else if (msg.data === "audio-end") {
+        setInputEnabled(true); // agent finished - now it's the user's turn to type, tap, or speak
+        statusEl.textContent = "آپ کی باری - لکھیں، بولیں یا کسی آپشن پر کلک کریں";
+        textInput.focus();
+        ws.send(JSON.stringify({ type: "text", data: "bot-speak-end" }));
+      }
+    }
+  };
+
+  ws.onclose = () => {
+    statusEl.textContent = "رابطہ منقطع ہو گیا";
+    setInputEnabled(false);
+  };
+
+  ws.onerror = () => {
+    statusEl.textContent = "رابطے میں خرابی - براہ کرم صفحہ دوبارہ لوڈ کریں";
+  };
+}
+
+function sendTypedAnswer() {
+  const text = textInput.value.trim();
+  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
+
+  // This is the key line: instead of streaming microphone audio, we send the
+  // user's typed (or speech-recognized) answer as if it were already-
+  // transcribed speech. The Ability on the other end (generate_passport_token_2.py)
+  // reads this via `await capability_worker.user_response()` exactly the
+  // same way it would read a spoken answer - no ability code changes needed.
+  ws.send(JSON.stringify({ type: "transcribed", data: text }));
+
+  addBubble("user", text);
+  textInput.value = "";
+  setInputEnabled(false); // wait for the agent's next spoken question
+}
+
+sendBtn.addEventListener("click", sendTypedAnswer);
+micBtn.addEventListener("click", toggleMic);
+textInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") sendTypedAnswer();
+});
+
+initSpeechRecognition();
+connect();
+</script>
+</body>
+</html>

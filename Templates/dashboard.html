@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+    <div class="nav-brand-text">
+      <strong class="en">Government of Pakistan</strong>
+      <strong class="ur">حکومت پاکستان</strong>
+      <span class="en">DGIP — Ministry of Interior</span>
+      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('home') }}" class="en">Home</a>
+    <a href="{{ url_for('home') }}" class="ur">ہوم</a>
+    <a href="{{ url_for('dashboard') }}" class="active en">Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="active ur">ڈیش بورڈ</a>
+    <a href="{{ url_for('token_form') }}" class="en">New Application</a>
+    <a href="{{ url_for('token_form') }}" class="ur">نئی درخواست</a>
+    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
+    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
+   
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+    <a href="{{ url_for('token_form') }}" class="btn-nav-register en">+ New Token</a>
+    <a href="{{ url_for('token_form') }}" class="btn-nav-register ur">+ نیا ٹوکن</a>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
+  </div>
+</nav>
+
+<div class="dash-wrap">
+  <div class="dash-inner">
+
+    <!-- Welcome -->
+    <div class="dash-welcome">
+      <div>
+        <h2 class="en">Welcome back 👋</h2>
+        <h2 class="ur">خوش آمدید 👋</h2>
+        <p class="en">Manage your passport applications and tokens below.</p>
+        <p class="ur">اپنی پاسپورٹ درخواستیں اور ٹوکن یہاں منظم کریں۔</p>
+      </div>
+      <div class="dash-actions">
+        <a href="{{ url_for('token_form') }}" class="btn btn-primary en">📋 Fill Application</a>
+        <a href="{{ url_for('token_form') }}" class="btn btn-primary ur">📋 درخواست بھریں</a>
+        <a href="{{ url_for('chats') }}" class="btn btn-outline-green en">🤖 AI Assistant</a>
+        <a href="{{ url_for('chats') }}" class="btn btn-outline-green ur">🤖 اے آئی مدد</a>
+      </div>
+    </div>
+
+    <!-- Tokens -->
+    <div class="tokens-card">
+      <h4 class="en">🗂️ Your Past Tokens</h4>
+      <h4 class="ur">🗂️ آپ کے پرانے ٹوکن</h4>
+
+      {% if tokens %}
+      <div class="tokens-table-wrap">
+        <table class="tokens-table">
+          <thead>
+            <tr>
+              <th><span class="en">#</span><span class="ur">#</span></th>
+              <th><span class="en">Token No.</span><span class="ur">ٹوکن نمبر</span></th>
+              <th><span class="en">Full Name</span><span class="ur">نام</span></th>
+              <th><span class="en">Date</span><span class="ur">تاریخ</span></th>
+              <th><span class="en">Action</span><span class="ur">عمل</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in tokens %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td><strong>{{ t.token }}</strong></td>
+              <td>{{ t.name }}</td>
+              <td>{{ t.created_date.strftime('%d %b %Y') }}</td>
+              <td>
+                <a href="{{ url_for('view', id=t.id) }}" class="btn btn-primary btn-sm en">View PDF</a>
+                <a href="{{ url_for('view', id=t.id) }}" class="btn btn-primary btn-sm ur">پی ڈی ایف</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <p class="en">No applications yet. Submit your first passport application!</p>
+        <p class="ur">ابھی تک کوئی درخواست نہیں۔ اپنی پہلی پاسپورٹ درخواست جمع کریں!</p>
+        <a href="{{ url_for('token_form') }}" class="btn btn-primary en">Apply Now</a>
+        <a href="{{ url_for('token_form') }}" class="btn btn-primary ur">ابھی درخواست دیں</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<footer style="background:var(--green-dark);color:rgba(255,255,255,.45);text-align:center;padding:1rem;font-size:.82rem;">
+  <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan</p>
+  <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان</p>
+</footer>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+</body>
+</html>

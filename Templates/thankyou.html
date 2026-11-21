@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application Submitted – DGIP Pakistan</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="site-nav">
+  <a href="{{ url_for('home') }}" class="nav-brand">
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+    <div class="nav-brand-text">
+      <strong class="en">Government of Pakistan</strong>
+      <strong class="ur">حکومت پاکستان</strong>
+      <span class="en">DGIP — Ministry of Interior</span>
+      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
+    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
+  </div>
+  <div class="nav-right">
+    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
+    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
+  </div>
+</nav>
+
+<div class="ty-wrap">
+  <div class="ty-card">
+    <div class="ty-icon">✅</div>
+    <h1 class="en">Thank You, {{ name }}!</h1>
+    <h1 class="ur">شکریہ، {{ name }}!</h1>
+    <p class="en">Your passport application has been submitted successfully and is now being processed.</p>
+    <p class="ur">آپ کی پاسپورٹ درخواست کامیابی سے جمع ہو گئی ہے اور اب اس پر کارروائی ہو رہی ہے۔</p>
+    <div class="ty-summary">
+      <h3 class="en">Application Summary</h3>
+      <h3 class="ur">درخواست کا خلاصہ</h3>
+      <div class="ty-row">
+        <span class="en">Application ID</span><span class="ur">درخواست آئی ڈی</span>
+        <span>#{{ token }}</span>
+      </div>
+      <div class="ty-row">
+        <span class="en">Submission Date</span><span class="ur">تاریخ</span>
+        <span>{{ submission_date }}</span>
+      </div>
+      <div class="ty-row">
+        <span class="en">Status</span><span class="ur">حیثیت</span>
+        <span style="color:var(--success);font-weight:700;">
+          <span class="en">Submitted ✓</span><span class="ur">جمع ہو گئی ✓</span>
+        </span>
+      </div>
+    </div>
+    <p class="en" style="font-size:.9rem;">Please keep your Application ID for future reference. Your PDF receipt is ready below.</p>
+    <p class="ur" style="font-size:.9rem;">مستقبل کے لیے اپنی درخواست آئی ڈی محفوظ رکھیں۔ آپ کی پی ڈی ایف رسید تیار ہے۔</p>
+    <div class="ty-btns">
+      <a href="{{ url_for('view', id=id) }}" class="btn btn-primary en">📄 Download PDF Receipt</a>
+      <a href="{{ url_for('view', id=id) }}" class="btn btn-primary ur">📄 پی ڈی ایف ڈاؤنلوڈ</a>
+      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green en">📋 New Application</a>
+      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green ur">📋 نئی درخواست</a>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+</body>
+</html>
