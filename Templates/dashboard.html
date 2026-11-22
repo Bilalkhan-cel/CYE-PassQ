@@ -3,112 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard – DGIP Pakistan</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<title>Dashboard – PassQ</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passq.css') }}">
 </head>
 <body>
+{% include "_icons.html" %}
+{% set active = 'dashboard' %}{% include "_app_nav.html" %}
 
-<nav class="site-nav">
-  <a href="{{ url_for('home') }}" class="nav-brand">
-    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
-    <div class="nav-brand-text">
-      <strong class="en">Government of Pakistan</strong>
-      <strong class="ur">حکومت پاکستان</strong>
-      <span class="en">DGIP — Ministry of Interior</span>
-      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+<main class="page">
+  <header class="page-head rise">
+    <h1><span class="en">Your tokens</span><span class="ur" lang="ur">آپ کے ٹوکن</span></h1>
+    <p><span class="en">Every booking you make shows here with its office and arrival time. Download the receipt to show at the counter.</span><span class="ur" lang="ur">آپ کی ہر بُکنگ یہاں دفتر اور پہنچنے کے وقت کے ساتھ نظر آتی ہے۔ کاؤنٹر پر دکھانے کے لیے رسید ڈاؤن لوڈ کریں۔</span></p>
+    <div class="actions">
+      <a class="btn btn-primary" href="{{ url_for('token_form') }}"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg><span class="en">Book a token</span><span class="ur" lang="ur">ٹوکن بُک کریں</span></a>
     </div>
-  </a>
-  <div class="nav-links">
-    <a href="{{ url_for('home') }}" class="en">Home</a>
-    <a href="{{ url_for('home') }}" class="ur">ہوم</a>
-    <a href="{{ url_for('dashboard') }}" class="active en">Dashboard</a>
-    <a href="{{ url_for('dashboard') }}" class="active ur">ڈیش بورڈ</a>
-    <a href="{{ url_for('token_form') }}" class="en">New Application</a>
-    <a href="{{ url_for('token_form') }}" class="ur">نئی درخواست</a>
-    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
-    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
-   
-  </div>
-  <div class="nav-right">
-    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
-    <a href="{{ url_for('token_form') }}" class="btn-nav-register en">+ New Token</a>
-    <a href="{{ url_for('token_form') }}" class="btn-nav-register ur">+ نیا ٹوکن</a>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
-  </div>
-</nav>
+  </header>
 
-<div class="dash-wrap">
-  <div class="dash-inner">
-
-    <!-- Welcome -->
-    <div class="dash-welcome">
-      <div>
-        <h2 class="en">Welcome back 👋</h2>
-        <h2 class="ur">خوش آمدید 👋</h2>
-        <p class="en">Manage your passport applications and tokens below.</p>
-        <p class="ur">اپنی پاسپورٹ درخواستیں اور ٹوکن یہاں منظم کریں۔</p>
-      </div>
-      <div class="dash-actions">
-        <a href="{{ url_for('token_form') }}" class="btn btn-primary en">📋 Fill Application</a>
-        <a href="{{ url_for('token_form') }}" class="btn btn-primary ur">📋 درخواست بھریں</a>
-        <a href="{{ url_for('chats') }}" class="btn btn-outline-green en">🤖 AI Assistant</a>
-        <a href="{{ url_for('chats') }}" class="btn btn-outline-green ur">🤖 اے آئی مدد</a>
-      </div>
-    </div>
-
-    <!-- Tokens -->
-    <div class="tokens-card">
-      <h4 class="en">🗂️ Your Past Tokens</h4>
-      <h4 class="ur">🗂️ آپ کے پرانے ٹوکن</h4>
-
+  <div class="dash-grid">
+    <section aria-labelledby="bookingsTitle">
+      <h2 class="h2 sr-only" id="bookingsTitle"><span class="en">Bookings</span><span class="ur" lang="ur">بُکنگز</span></h2>
       {% if tokens %}
-      <div class="tokens-table-wrap">
-        <table class="tokens-table">
-          <thead>
-            <tr>
-              <th><span class="en">#</span><span class="ur">#</span></th>
-              <th><span class="en">Token No.</span><span class="ur">ٹوکن نمبر</span></th>
-              <th><span class="en">Full Name</span><span class="ur">نام</span></th>
-              <th><span class="en">Date</span><span class="ur">تاریخ</span></th>
-              <th><span class="en">Action</span><span class="ur">عمل</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for t in tokens %}
-            <tr>
-              <td>{{ loop.index }}</td>
-              <td><strong>{{ t.token }}</strong></td>
-              <td>{{ t.name }}</td>
-              <td>{{ t.created_date.strftime('%d %b %Y') }}</td>
-              <td>
-                <a href="{{ url_for('view', id=t.id) }}" class="btn btn-primary btn-sm en">View PDF</a>
-                <a href="{{ url_for('view', id=t.id) }}" class="btn btn-primary btn-sm ur">پی ڈی ایف</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+      <div class="bookings">
+        {% for t in tokens %}
+        {% set win = t.token | arrival %}
+        {% set is_today = t.token_day is defined and t.token_day == pk_today %}
+        <article class="booking rise{% if is_today %} is-today{% endif %}" style="--d:{{ loop.index }}">
+          <div class="b-num tnum" aria-label="Token {{ t.token }}">{{ '%04d' % t.token }}</div>
+          <div class="b-info">
+            <div class="b-office">
+              {% if t.branch %}<span class="en">{{ t.branch }}</span><span class="ur" lang="ur">{{ t.branch | branch_ur }}</span>{% else %}<span class="en">{{ t.name }}</span><span class="ur" lang="ur">{{ t.name }}</span>{% endif %}
+              {% if is_today %}<span class="chip"><span class="en">Today</span><span class="ur" lang="ur">آج</span></span>{% endif %}
+            </div>
+            <div class="b-meta">
+              {% if win %}<span><svg class="i" aria-hidden="true"><use href="#i-clock"/></svg><span class="en tnum">{{ win.en }}</span><span class="ur" lang="ur" dir="rtl">{{ win.ur }}</span></span>{% endif %}
+              <span class="tnum"><svg class="i" aria-hidden="true"><use href="#i-calendar"/></svg>{{ t.created_date.strftime('%d %b %Y') }}</span>
+              <span class="latin"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>{{ t.name }}</span>
+            </div>
+          </div>
+          <div class="b-act">
+            <a class="btn btn-line btn-sm" href="{{ url_for('view', id=t.id) }}"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Receipt</span><span class="ur" lang="ur">رسید</span></a>
+          </div>
+        </article>
+        {% endfor %}
       </div>
       {% else %}
-      <div class="empty-state">
-        <div class="empty-icon">📭</div>
-        <p class="en">No applications yet. Submit your first passport application!</p>
-        <p class="ur">ابھی تک کوئی درخواست نہیں۔ اپنی پہلی پاسپورٹ درخواست جمع کریں!</p>
-        <a href="{{ url_for('token_form') }}" class="btn btn-primary en">Apply Now</a>
-        <a href="{{ url_for('token_form') }}" class="btn btn-primary ur">ابھی درخواست دیں</a>
+      <div class="empty rise">
+        <svg class="i" aria-hidden="true"><use href="#i-ticket"/></svg>
+        <p><span class="en">No tokens yet. Book one and it will appear here with your office and arrival time.</span><span class="ur" lang="ur">ابھی کوئی ٹوکن نہیں۔ ٹوکن بُک کریں، وہ یہاں آپ کے دفتر اور پہنچنے کے وقت کے ساتھ نظر آئے گا۔</span></p>
+        <a class="btn btn-primary" href="{{ url_for('token_form') }}"><span class="en">Book your first token</span><span class="ur" lang="ur">اپنا پہلا ٹوکن بُک کریں</span></a>
       </div>
       {% endif %}
-    </div>
+    </section>
 
+    <aside class="chat-side">
+      <div class="side-card voice rise" style="--d:2">
+        <h2><span class="en">Rather speak?</span><span class="ur" lang="ur">بول کر بُک کرنا ہے؟</span></h2>
+        <p><span class="en">Book by talking in Urdu. Only your name, CNIC and office.</span><span class="ur" lang="ur">اردو میں بات کر کے بُک کریں۔ صرف نام، شناختی کارڈ اور دفتر۔</span></p>
+        <a class="btn" href="{{ url_for('voice_agent') }}"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg><span class="en">Speak to book</span><span class="ur" lang="ur">بول کر بُک کریں</span></a>
+      </div>
+      <div class="side-card rise" style="--d:3">
+        <h2><span class="en">Have a question?</span><span class="ur" lang="ur">کوئی سوال ہے؟</span></h2>
+        <p class="muted"><span class="en">Ask about documents, office timings or your token.</span><span class="ur" lang="ur">دستاویزات، دفتری اوقات یا اپنے ٹوکن کے بارے میں پوچھیں۔</span></p>
+        <a class="btn btn-line" href="{{ url_for('chats') }}"><svg class="i" aria-hidden="true"><use href="#i-chat"/></svg><span class="en">AI help</span><span class="ur" lang="ur">اے آئی مدد</span></a>
+      </div>
+    </aside>
   </div>
-</div>
+</main>
 
-<footer style="background:var(--green-dark);color:rgba(255,255,255,.45);text-align:center;padding:1rem;font-size:.82rem;">
-  <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan</p>
-  <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان</p>
-</footer>
-
+{% include "_app_footer.html" %}
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
 </body>
 </html>

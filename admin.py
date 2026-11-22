@@ -19,6 +19,7 @@ Output: {
 
 import re
 from datetime import date, datetime
+from office import pk_today
 
 from locations import (
     LOCATIONS, BRANCHES, normalize_province, allowed_branch_provinces,
@@ -138,7 +139,7 @@ def check_passport_data(data: dict) -> dict:
 
     # ── DATE OF BIRTH ───────────────────────────────────────────────────────
     dob = None
-    today = date.today()
+    today = pk_today()
     if not dob_raw:
         errors["dob"] = "Date of birth is required."
     else:

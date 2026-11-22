@@ -3,837 +3,570 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Directorate General of Immigration & Passports – Government of Pakistan</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<title>PassQ – Book your regional passport appointment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet">
+<script>
+  // Motion class is set before paint so animated parts don't flash; removed again if GSAP never arrives.
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');
+  setTimeout(function(){ if(!window.gsap) document.documentElement.classList.remove('motion'); }, 2500);
+</script>
 <style>
-/* ═══════════════════════════════════════
-   ANIMATION SYSTEM
-═══════════════════════════════════════ */
-.reveal {
-  opacity: 0; transform: translateY(32px);
-  transition: opacity 0.65s cubic-bezier(.22,.68,0,1.1), transform 0.65s cubic-bezier(.22,.68,0,1.1);
+:root{
+  --ground:#F2F3EF; --ground-2:#E8EBE5; --ink:#14231B; --muted:#56665C; --line:#C9D2CB;
+  --green:#0F5A3B; --green-2:#0B4A30; --green-soft:#DDEBDD; --mint:#8FE0B0;
+  --press:#865E1A; --white:#FFFFFF;
+  --r-card:12px; --r-pill:999px;
+  --gutter:clamp(16px,4.5vw,64px);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --latin:'Archivo',system-ui,sans-serif;
+  --urdu:'Noto Nastaliq Urdu','Jameel Noori Nastaleeq',serif;
 }
-.reveal.visible { opacity: 1; transform: translateY(0); }
-.reveal-group .reveal:nth-child(1) { transition-delay: 0s; }
-.reveal-group .reveal:nth-child(2) { transition-delay: 0.12s; }
-.reveal-group .reveal:nth-child(3) { transition-delay: 0.24s; }
-.reveal-fade { opacity: 0; transition: opacity 0.7s ease; }
-.reveal-fade.visible { opacity: 1; }
-.reveal-scale { opacity: 0; transform: scale(0.80); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.34,1.56,.64,1); }
-.reveal-scale.visible { opacity: 1; transform: scale(1); }
-.reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.22,.68,0,1.1); }
-.reveal-left.visible { opacity: 1; transform: translateX(0); }
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{background:var(--ground);color:var(--ink);font-family:var(--latin);font-size:17px;line-height:1.55;overflow-x:hidden}
+img{display:block;max-width:100%}
+a{color:inherit}
+::selection{background:var(--green);color:var(--white)}
+:focus-visible{outline:3px solid var(--green);outline-offset:3px;border-radius:6px}
+input{caret-color:var(--green)}
+.tnum{font-variant-numeric:tabular-nums}
 
-/* ── Hero Parallax ── */
-.hero-bg img { will-change: transform; transform: scale(1.08) translateY(0px); transition: none; }
+/* language: spans only, one language at a time */
+.ur{display:none}
+body.lang-ur .en{display:none}
+body.lang-ur .ur{display:inline;font-family:var(--urdu);letter-spacing:0}
+body.lang-ur{direction:rtl;line-height:2}
 
-/* ── sec-bar animation ── */
-.sec-bar { transform: scaleX(0); transform-origin: left; transition: transform 0.6s cubic-bezier(.22,.68,0,1.1) 0.2s; }
-.sec-head.visible .sec-bar { transform: scaleX(1); }
+/* motion pre-state (only when JS motion is on) */
+html.motion .m-in{visibility:hidden}
 
-/* ── Stats bar ── */
-.stats-bar .stat { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
-.stats-bar.visible .stat:nth-child(1) { opacity:1; transform:none; transition-delay:0s; }
-.stats-bar.visible .stat:nth-child(2) { opacity:1; transform:none; transition-delay:0.1s; }
-.stats-bar.visible .stat:nth-child(3) { opacity:1; transform:none; transition-delay:0.2s; }
-.stats-bar.visible .stat:nth-child(4) { opacity:1; transform:none; transition-delay:0.3s; }
-.stat strong { display: block; transition: color 0.3s ease; }
-.stat:hover strong { color: var(--gold-light); }
+.wrap{max-width:1200px;margin:0 auto;padding:0 var(--gutter)}
 
-/* ── Nav scroll ── */
-.site-nav { transition: background 0.35s ease, box-shadow 0.35s ease; }
-.site-nav.scrolled { background: rgba(1,42,18,.97); box-shadow: 0 4px 24px rgba(0,0,0,.35); }
+/* ── NAV ── */
+.nav{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:22px var(--gutter);max-width:1328px;margin:0 auto}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none}
+.brand img{width:40px;height:40px;border-radius:50%}
+.brand-name{font-size:24px;font-weight:800;font-stretch:112%;letter-spacing:-.02em;color:var(--green);line-height:1}
+.brand-sub{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.3}
+body.lang-ur .brand-sub{font-size:12px;line-height:1.9}
+.nav-links{display:flex;align-items:center;gap:30px;font-size:15px}
+.nav-links a{text-decoration:none;position:relative;padding:4px 0}
+.nav-links a::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:1.5px;background:var(--green);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
+.nav-links a:hover::after{transform:scaleX(1)}
+body.lang-ur .nav-links a::after{transform-origin:right}
+.nav-right{display:flex;align-items:center;gap:10px}
+.lang-switch{font:inherit;font-size:15px;background:none;border:1.5px solid var(--ink);color:var(--ink);border-radius:var(--r-pill);padding:7px 16px;cursor:pointer;transition:background .3s var(--ease),color .3s var(--ease)}
+.lang-switch:hover{background:var(--ink);color:var(--ground)}
+.lang-switch.to-ur{font-family:var(--urdu);padding:3px 16px 8px}
+.signin{font-size:15px;text-decoration:none;padding:8px 14px}
 
-/* ── Hero text entrance ── */
-.hero-eyebrow { opacity:0; transform:translateY(16px); animation: heroIn 0.7s cubic-bezier(.22,.68,0,1.1) 0.2s forwards; }
-.hero-h1      { opacity:0; transform:translateY(20px); animation: heroIn 0.7s cubic-bezier(.22,.68,0,1.1) 0.38s forwards; }
-.hero-sub     { opacity:0; transform:translateY(16px); animation: heroIn 0.6s ease 0.55s forwards; }
-.hero-tags    { opacity:0; transform:translateY(14px); animation: heroIn 0.6s ease 0.68s forwards; }
-.hero-actions { opacity:0; transform:translateY(14px); animation: heroIn 0.6s ease 0.80s forwards; }
-@keyframes heroIn { to { opacity:1; transform:translateY(0); } }
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:12px;border-radius:var(--r-pill);text-decoration:none;font-weight:650;font-size:19px;padding:17px 30px;transition:transform .5s var(--ease),background .3s var(--ease),box-shadow .5s var(--ease),color .3s}
+.btn:active{transform:scale(.97)}
+.btn-speak{background:var(--green);color:var(--white);box-shadow:0 10px 24px -12px rgba(20,35,27,.45)}
+.btn-speak:hover{background:var(--green-2);transform:translateY(-2px);box-shadow:0 16px 30px -14px rgba(20,35,27,.5)}
+.btn-line{border:1.5px solid var(--ink);color:var(--ink)}
+.btn-line:hover{background:var(--ink);color:var(--ground)}
+.mic{position:relative;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.16)}
+.mic svg{width:15px;height:15px}
+.mic::before{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid var(--mint);opacity:0}
+.is-pulsing .mic::before{animation:ring 2.2s var(--ease) 3}
+@keyframes ring{0%{transform:scale(1);opacity:.9}100%{transform:scale(2.1);opacity:0}}
+body.lang-ur .btn{padding:10px 30px 18px}
 
-/* ── Footer links ── */
-.fc ul li a { position:relative; padding-left:0; transition: color 0.2s ease, padding-left 0.2s ease; }
-.fc ul li a::before { content:'›'; position:absolute; left:-14px; opacity:0; color:var(--gold); transition: opacity 0.2s ease, left 0.2s ease; }
-.fc ul li { padding-left: 14px; }
-.fc ul li a:hover::before { opacity:1; left:0; }
-.fc ul li a:hover { padding-left: 4px; }
+/* ── HERO: Faisal Masjid behind everything, fading out on scroll ── */
+.hero{position:relative;min-height:100svh;display:flex;flex-direction:column;color:var(--white)}
+.hero-bg{position:absolute;inset:0;z-index:-1;overflow:hidden;background:#1B2430}
+html.motion .hero-bg{position:fixed;height:100lvh;bottom:auto}
+.hero-bg img{width:100%;height:100%;object-fit:cover;object-position:center 58%;will-change:transform}
+/* shade: dark behind the words, clear over the mosque, melting into the page colour at the bottom */
+.hero-bg::after{content:'';position:absolute;inset:0;background:
+  linear-gradient(180deg,rgba(9,20,15,.74) 0%,rgba(9,20,15,.56) 34%,rgba(9,20,15,.18) 60%,rgba(242,243,239,0) 76%,rgba(242,243,239,.85) 93%,var(--ground) 100%)}
+.hero .nav{color:var(--white);width:100%}
+.hero .hook{width:100%}
+.hero .ticket{color:var(--ink)}
+.hero .brand-name{color:var(--white)}
+.hero .brand-sub{color:rgba(255,255,255,.78)}
+.hero .nav-links a::after{background:var(--mint)}
+.hero .lang-switch{border-color:rgba(255,255,255,.75);color:var(--white)}
+.hero .lang-switch:hover{background:var(--white);color:var(--ink)}
+.hook{text-align:center;padding:clamp(40px,9vh,96px) var(--gutter) 0;max-width:1180px;margin:0 auto}
+.hook h1{font-size:clamp(44px,7.4vw,98px);line-height:.95;font-weight:780;font-stretch:118%;letter-spacing:-.035em;text-wrap:balance;text-shadow:0 2px 30px rgba(0,0,0,.28)}
+.hook h1 em{font-style:normal;color:var(--mint)}
+body.lang-ur .hook h1{font-size:clamp(30px,4.3vw,56px);line-height:1.62;font-weight:700}
+.hook .sub{margin:22px auto 0;font-size:clamp(17px,1.7vw,21px);color:rgba(255,255,255,.88);max-width:640px;text-wrap:balance;text-shadow:0 1px 16px rgba(0,0,0,.35)}
+body.lang-ur .hook .sub{line-height:2.1}
+.cta{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:30px}
+.hero .btn-speak{background:var(--white);color:var(--green);box-shadow:0 14px 30px -12px rgba(0,0,0,.45)}
+.hero .btn-speak:hover{background:var(--green-soft)}
+.hero .btn-speak .mic{background:var(--green-soft);color:var(--green)}
+.hero .btn-speak .mic::before{border-color:var(--green)}
+.hero .btn-line{border-color:rgba(255,255,255,.8);color:var(--white);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);background:rgba(255,255,255,.06)}
+.hero .btn-line:hover{background:var(--white);color:var(--ink)}
 
-/* ══════════════════════
-   HERO LIVE EFFECTS
-══════════════════════ */
+.ticket-hold{margin:auto auto 28px;padding-top:40px;perspective:900px;position:relative;z-index:2;filter:drop-shadow(0 22px 24px rgba(20,35,27,.34)) drop-shadow(0 4px 8px rgba(20,35,27,.22))}
+@media (max-height:880px) and (min-width:561px){.hook{padding-top:20px}.hook h1{font-size:clamp(40px,6.2vw,84px)}.cta{margin-top:24px}.ticket-hold{padding-top:26px;margin-bottom:20px}}
 
-/* Canvas layers over hero */
-.hero-canvas-clouds {
-  position: absolute; inset: 0; z-index: 2; pointer-events: none;
-}
-.hero-canvas-shimmer {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  height: 80px; z-index: 3; pointer-events: none;
-}
+/* ── THE TICKET ── */
+.ticket{--stub:140px;--hole:10px;position:relative;width:min(580px,calc(100vw - 32px));background:var(--green-soft);border-radius:10px;padding:22px 0 20px 26px;display:grid;grid-template-columns:1fr var(--stub);gap:8px 0;transform:rotate(-2deg);direction:ltr;
+  -webkit-mask:radial-gradient(circle var(--hole) at calc(100% - var(--stub)) 0,#0000 97%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--hole) at calc(100% - var(--stub)) 100%,#0000 97%,#000) bottom/100% 51% no-repeat;
+          mask:radial-gradient(circle var(--hole) at calc(100% - var(--stub)) 0,#0000 97%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--hole) at calc(100% - var(--stub)) 100%,#0000 97%,#000) bottom/100% 51% no-repeat}
+/* the perforation: a column of punched holes between ticket and stub */
+.ticket::after{content:'';position:absolute;top:16px;bottom:16px;right:calc(var(--stub) - 2px);width:4px;background:radial-gradient(circle,rgba(20,35,27,.38) 1.4px,#0000 1.8px) center top/4px 9px repeat-y;pointer-events:none}
+.t-main{padding-right:22px}
+.t-route{display:block;font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--green);border-bottom:1px dashed rgba(15,90,59,.35);padding-bottom:9px}
+.t-route .ur{letter-spacing:0;font-size:13px}
+.t-serial{font-weight:600;color:var(--muted);letter-spacing:.04em}
+.t-label{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:8px}
+.t-label .ur{text-transform:none;font-size:13px}
+.t-num{font-size:clamp(52px,7vw,70px);line-height:.95;font-weight:800;font-stretch:125%;color:var(--green);letter-spacing:-.02em}
+.t-office{font-size:16px;font-weight:600}
+.t-time{font-size:22px;font-weight:750;font-stretch:110%}
+.t-side{grid-row:1;grid-column:2;display:flex;flex-direction:column;justify-content:space-between;align-items:center;gap:10px;padding:0 14px}
+.stamp{border:2.5px solid var(--press);color:var(--press);border-radius:8px;text-align:center;padding:10px 12px;font-weight:800;font-stretch:115%;font-size:22px;line-height:1.05;transform:rotate(6deg);mix-blend-mode:multiply;box-shadow:0 0 0 2px var(--green-soft) inset,0 0 0 3.5px var(--press) inset}
+.stamp small{display:block;font-size:11px;letter-spacing:.12em;font-weight:700}
+.stamp .ur{font-size:15px;line-height:1.4}
+.stamp small .ur{font-size:12px}
+.t-sample{font-size:11px;color:var(--muted)}
+body.lang-ur .ticket{line-height:1.6}
 
-/* Typewriter cursor */
-.tw-cursor {
-  display: inline-block; width: 3px; height: .85em;
-  background: #D4AF37; margin-left: 2px; vertical-align: middle;
-  animation: cursorBlink 1s step-end infinite;
-}
-@keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+/* ── SECTIONS ── */
+section{padding:clamp(80px,12vw,150px) 0}
 
-/* Hero badge pulse dot */
-.hero-eyebrow::before { display: none; } /* override existing */
-.hero-eyebrow {
-  display: flex; align-items: center; gap: 10px; margin-bottom: 1.2rem;
-}
-.eyebrow-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: #D4AF37; flex-shrink: 0;
-  animation: dotPulse 1.8s ease infinite;
-  box-shadow: 0 0 0 0 rgba(212,175,55,.6);
-}
-@keyframes dotPulse {
-  0%  { transform: scale(1);   box-shadow: 0 0 0 0 rgba(212,175,55,.6); }
-  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(212,175,55,0); }
-  100%{ transform: scale(1);   box-shadow: 0 0 0 0 rgba(212,175,55,0); }
-}
+.h2{font-size:clamp(36px,5vw,64px);line-height:1;font-weight:780;font-stretch:115%;letter-spacing:-.03em;text-wrap:balance}
+body.lang-ur .h2{font-size:clamp(30px,3.8vw,48px);line-height:1.8;font-weight:700}
+.lead{font-size:clamp(17px,1.5vw,20px);color:var(--muted);max-width:52ch;margin-top:20px}
+body.lang-ur .lead{line-height:2.1}
 
-/* Glass bottom-left stat card */
-.hero-glass-card {
-  position: absolute; bottom: 36px; left: 5%;
-  z-index: 15; pointer-events: auto;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(212,175,55,.25);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border-radius: 18px; padding: 18px 22px;
-  min-width: 155px;
-  opacity: 0; transform: translateX(-20px);
-  animation: heroIn 0.7s ease 1.1s forwards;
-}
-.hgc-num {
-  font-size: 30px; font-weight: 700; color: #fff;
-  font-family: 'Playfair Display', serif; line-height: 1;
-}
-.hgc-num span { color: #D4AF37; }
-.hgc-label {
-  font-size: 9.5px; color: rgba(255,255,255,.45);
-  letter-spacing: .14em; text-transform: uppercase;
-  margin: 4px 0 14px;
-}
-.hgc-btn {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(212,175,55,.15);
-  border: 1px solid rgba(212,175,55,.3);
-  border-radius: 20px; padding: 6px 14px 6px 8px;
-  color: #D4AF37; font-size: 11.5px; font-weight: 600;
-  cursor: pointer; width: fit-content;
-  transition: background .2s;
-  text-decoration: none;
-}
-.hgc-btn:hover { background: rgba(212,175,55,.25); }
-.hgc-btn-icon {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: rgba(212,175,55,.2);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 11px;
-}
+/* how it works: a route line */
+.how{display:grid;grid-template-columns:5fr 7fr;gap:clamp(32px,6vw,96px);align-items:start}
+.how-head{position:sticky;top:48px}
+.route{position:relative;padding-inline-start:56px}
+.stops{list-style:none}
+.route-track,.route-fill{position:absolute;inset-inline-start:15px;top:14px;bottom:14px;width:2px;background:var(--line)}
+.route-fill{background:var(--green);transform-origin:top;transform:scaleY(1)}
+html.motion .route-fill{transform:scaleY(0)}
+.stop{position:relative;padding:6px 0 56px}
+.stop:last-child{padding-bottom:0}
+.dot{position:absolute;inset-inline-start:-56px;top:2px;width:32px;height:32px;border-radius:50%;background:var(--ground);border:2px solid var(--line);display:grid;place-items:center;transition:border-color .5s var(--ease),background .5s var(--ease)}
+.dot svg{width:15px;height:15px;color:var(--muted);transition:color .5s}
+.stop.is-reached .dot,html:not(.motion) .dot{border-color:var(--green);background:var(--green)}
+.stop.is-reached .dot svg,html:not(.motion) .dot svg{color:var(--white)}
+.stop h3{font-size:clamp(24px,2.4vw,30px);font-weight:750;font-stretch:110%;letter-spacing:-.02em;line-height:1.15}
+body.lang-ur .stop h3{font-size:clamp(22px,2vw,26px);line-height:1.9}
+.stop p{color:var(--muted);margin-top:8px;max-width:46ch}
 
-/* Corner cutout card — RIVR style */
-.hero-corner-card {
-  position: absolute; bottom: 0; right: 0; z-index: 15;
-  background: rgba(1,20,8,.88);
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border-radius: 22px 0 0 0;
-  padding: 18px 26px 18px 30px;
-  display: flex; align-items: center; gap: 14px;
-  opacity: 0; transform: translateY(16px);
-  animation: heroIn 0.7s ease 1.2s forwards;
-}
-/* corner SVG masks */
-.hero-corner-card .mask-top {
-  position: absolute; top: -22px; right: 0;
-  width: 22px; height: 22px; pointer-events: none;
-}
-.hero-corner-card .mask-left {
-  position: absolute; bottom: 0; left: -22px;
-  width: 22px; height: 22px; pointer-events: none;
-}
-.hcc-icon {
-  width: 42px; height: 42px; border-radius: 50%;
-  border: 1px solid rgba(212,175,55,.3);
-  background: rgba(212,175,55,.08);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px; flex-shrink: 0;
-}
-.hcc-title { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-.hcc-sub { font-size: 11px; color: #D4AF37; font-weight: 500; cursor: pointer; }
-.hcc-sub:hover { text-decoration: underline; }
+/* arrival windows */
+.arrive{background:var(--ground-2);border-block:1px solid var(--line)}
+.arrive-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(32px,6vw,96px);align-items:center}
+.lookup{margin-top:34px;display:flex;flex-wrap:wrap;align-items:end;gap:18px}
+.lookup label{display:block;font-size:14px;font-weight:600;margin-bottom:8px}
+.lookup input{font:inherit;font-size:34px;font-weight:750;font-stretch:120%;width:170px;padding:10px 18px;border:2px solid var(--ink);border-radius:14px;background:var(--ground);color:var(--ink);font-variant-numeric:tabular-nums;transition:border-color .3s}
+.lookup input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 4px rgba(15,90,59,.15)}
+.lookup-out{font-size:14px;color:var(--muted)}
+.lookup-out b .ur,.board-row .w .ur{unicode-bidi:isolate}
+.lookup-out b{display:block;font-size:clamp(28px,3vw,38px);color:var(--green);font-weight:780;font-stretch:115%;line-height:1.1;margin-top:2px;direction:ltr}
+.lookup-err{font-size:14px;color:#A2352A;margin-top:10px;min-height:1.5em}
+.board{background:var(--green-soft);border-radius:var(--r-card);padding:10px 14px 14px;box-shadow:0 30px 60px -36px rgba(20,35,27,.5);perspective:700px}
+.board-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 16px;border-radius:3px;border-bottom:1px solid rgba(15,90,59,.18);font-variant-numeric:tabular-nums;transition:background .5s var(--ease),color .5s var(--ease)}
+.board-row.now{border-bottom-color:transparent}
+.board-head{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding-block:6px 10px}
+.board-head .ur{text-transform:none;font-size:13px}
+.board-row .w{font-size:20px;font-weight:720;font-stretch:122%;unicode-bidi:isolate;text-align:start}
+.board-row .t{font-size:15px;color:var(--muted);direction:ltr}
+.board-row.now{background:var(--green);color:var(--white)}
+.board-row.now .t{color:rgba(255,255,255,.8)}
 
-/* Scroll indicator — vertical line style */
-.hero-scroll-hint {
-  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
-  z-index: 10; display: flex; flex-direction: column; align-items: center; gap: 6px;
-  color: rgba(255,255,255,.35); font-size: 9px; letter-spacing: .18em; text-transform: uppercase;
-}
-.hero-scroll-hint::after {
-  content: '';
-  display: block; width: 1px; height: 40px;
-  background: linear-gradient(to bottom, rgba(255,255,255,.3), transparent);
-  animation: scrollDrop 2s ease-in-out infinite;
-}
-@keyframes scrollDrop {
-  0%   { transform: scaleY(0); transform-origin: top; opacity: 1; }
-  50%  { transform: scaleY(1); transform-origin: top; opacity: 1; }
-  100% { transform: scaleY(1); transform-origin: bottom; opacity: 0; }
-}
+/* two ways */
+.ways{display:grid;grid-template-columns:7fr 5fr;gap:20px;margin-top:48px}
+.way{border-radius:20px;padding:clamp(28px,3.5vw,48px);display:flex;flex-direction:column;gap:18px}
+.way-voice{background:var(--green);color:var(--white)}
+.way-web{border:1.5px solid var(--ink)}
+.way h3{font-size:clamp(28px,3vw,40px);font-weight:780;font-stretch:115%;letter-spacing:-.025em;line-height:1.05}
+body.lang-ur .way h3{line-height:1.8;font-size:clamp(26px,2.4vw,34px)}
+.way ul{list-style:none;display:grid;gap:10px}
+.way li{display:flex;gap:12px;align-items:flex-start}
+.way li svg{flex:0 0 20px;width:20px;height:20px;margin-top:3px}
+.way-voice li svg{color:var(--mint)}
+.way-web li svg{color:var(--green)}
+.way .acts{margin-top:auto;display:flex;flex-wrap:wrap;gap:12px;padding-top:8px}
+.way-voice .btn-speak{background:var(--white);color:var(--green);box-shadow:none}
+.way-voice .btn-speak .mic{background:var(--green-soft)}
+.way-voice .btn-speak:hover{background:var(--green-soft)}
 
-/* ══════════════════════
-   FIX: hero-glass-card was covering the "Apply for Passport" CTA.
-   .hero-glass-card has z-index:15 with no positioned ancestor on
-   .hero-body, so it painted on top of the buttons. Raise the CTA
-   row above it and give it some breathing room from the card.
-══════════════════════ */
-.hero-actions {
-  position: relative;
-  z-index: 20;
-  margin-bottom: 130px;
-}
-@media (max-width: 640px) {
-  .hero-actions { margin-bottom: 170px; }
-}
+/* offices */
+.offices{columns:3 260px;column-gap:48px;margin-top:48px}
+.prov{break-inside:avoid;margin-bottom:34px}
+.prov h3{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--green);font-weight:700;padding-bottom:10px;border-bottom:2px solid var(--green)}
+.prov h3 .ur{text-transform:none;font-size:16px}
+.prov li{list-style:none;display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);font-size:17px}
+.prov li .n{color:var(--muted);font-variant-numeric:tabular-nums}
 
-/* ══════════════════════
-   NEW ABOUT SECTION
-   Dark emerald glassmorphism
-══════════════════════ */
-.section-about-new {
-  background: linear-gradient(135deg, #01411C 0%, #012A12 50%, #01411C 100%);
-  padding: 80px 0; position: relative; overflow: hidden;
-}
-.section-about-new::before {
-  content: ''; position: absolute; inset: 0;
-  background-image: repeating-linear-gradient(
-    45deg, rgba(212,175,55,.025) 0px, rgba(212,175,55,.025) 1px,
-    transparent 1px, transparent 50px
-  );
-}
-.section-about-new::after {
-  content: ''; position: absolute;
-  top: -100px; right: -100px; width: 400px; height: 400px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(11,110,60,.35), transparent 70%);
-  pointer-events: none;
-}
-.about-new-inner { position: relative; z-index: 2; max-width: 1160px; margin: 0 auto; padding: 0 24px; }
-.about-new-eyebrow {
-  font-size: 10px; font-weight: 700; letter-spacing: .22em;
-  text-transform: uppercase; color: #D4AF37;
-  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
-}
-.about-new-eyebrow::before { content: ''; width: 28px; height: 1px; background: #D4AF37; }
-.about-new-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.8rem);
-  font-weight: 700; color: #fff; margin-bottom: 10px; line-height: 1.2;
-}
-.about-new-title span { color: #D4AF37; }
-.about-gold-bar { width: 48px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0 32px; }
-.about-new-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media(max-width:640px){ .about-new-grid { grid-template-columns: 1fr; } }
+/* close */
+.close{text-align:center;padding-bottom:clamp(90px,12vw,150px)}
+.close .h2{font-size:clamp(56px,10vw,140px);line-height:.9}
+body.lang-ur .close .h2{font-size:clamp(46px,7vw,96px);line-height:1.6}
+.close .lead{margin:22px auto 34px}
 
-.about-glass-card {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(212,175,55,.2);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 20px; padding: 28px 26px;
-  transition: transform .3s ease, background .3s ease, border-color .3s ease;
-  cursor: default;
-}
-.about-glass-card:hover {
-  transform: translateY(-6px);
-  background: rgba(255,255,255,.1);
-  border-color: rgba(212,175,55,.5);
-}
-.agc-icon {
-  width: 46px; height: 46px; border-radius: 12px;
-  background: rgba(212,175,55,.12); border: 1px solid rgba(212,175,55,.25);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; margin-bottom: 16px;
-  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
-}
-.about-glass-card:hover .agc-icon { transform: scale(1.2) rotate(-8deg); }
-.agc-title { font-size: 15px; font-weight: 700; color: #D4AF37; margin-bottom: 8px; }
-.agc-body { font-size: 13.5px; color: rgba(255,255,255,.68); line-height: 1.8; }
+/* footer */
+footer{border-top:1px solid var(--line);padding:40px 0 48px;font-size:14px;color:var(--muted)}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px 48px}
+.foot .brand-name{font-size:20px}
+.foot-links{display:flex;flex-wrap:wrap;gap:10px 26px}
+.foot-links a{text-decoration:none}
+.foot-links a:hover{color:var(--green)}
+.foot p{margin-top:6px}
 
-/* ══════════════════════
-   NEW SERVICES SECTION
-   Light + glassmorphism cards
-══════════════════════ */
-.section-services-new {
-  background: #F5F7FA; padding: 80px 0;
-  position: relative; overflow: hidden;
+/* responsive */
+@media (max-width:900px){
+  .nav-links{display:none}
+  .how,.arrive-grid,.ways{grid-template-columns:1fr}
+  .how-head{position:static}
 }
-.section-services-new::before {
-  content: ''; position: absolute;
-  bottom: -80px; right: -80px; width: 300px; height: 300px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(1,65,28,.06), transparent 70%);
-  pointer-events: none;
+@media (max-width:560px){
+  .brand-sub{display:none}
+  .signin{display:none}
+  .btn{font-size:17px;padding:15px 24px;width:100%;justify-content:center}
+  .cta{flex-direction:column;align-items:stretch;max-width:360px;margin-inline:auto}
+  .ticket{padding:18px 18px 16px;transform:rotate(-1.5deg)}
+  .t-time{font-size:19px}
+  .stamp{font-size:18px;padding:8px 9px}
+  .hook{padding-top:18px}
+  .hook h1{font-size:40px}
+  .hook .sub{margin-top:16px;font-size:16px}
+  .cta{margin-top:22px;gap:10px}
+  .cta .btn{padding:13px 22px}
+  .ticket-hold{padding-top:22px;margin-bottom:14px}
+  .t-num{font-size:46px}
+  .t-label{margin-top:5px}
+  .ticket{--stub:112px;padding-left:18px;padding-top:18px;padding-bottom:16px}
+  .t-main{padding-right:14px}
 }
-.svc-new-inner { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
-.svc-new-head { margin-bottom: 48px; }
-.svc-new-eyebrow {
-  font-size: 10px; font-weight: 700; letter-spacing: .22em;
-  text-transform: uppercase; color: #0B6E3C; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 10px;
+@media (prefers-reduced-motion:reduce){
+  .mic::before{animation:none;opacity:0}
+  html{scroll-behavior:auto}
 }
-.svc-new-eyebrow::before { content:''; width:28px; height:1px; background:#0B6E3C; }
-.svc-new-title {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
-  font-weight: 700; color: #1F2937; margin-bottom: 10px; line-height: 1.2;
-}
-.svc-new-title span { color: #01411C; }
-.svc-gold-bar { width: 48px; height: 3px; background: #D4AF37; border-radius: 2px; margin: 16px 0 12px; }
-.svc-new-sub { font-size: 15px; color: #6B7280; max-width: 520px; line-height: 1.7; }
-
-.svc-new-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 22px; }
-@media(max-width:800px){ .svc-new-grid { grid-template-columns: 1fr; } }
-
-.svc-new-card {
-  background: #fff; border-radius: 20px;
-  border: 1.5px solid #D1D5DB;
-  overflow: hidden;
-  transition: transform .32s cubic-bezier(.22,.68,0,1.2), box-shadow .32s ease, border-color .3s;
-  cursor: pointer; position: relative;
-}
-.svc-new-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 50px rgba(1,65,28,.14);
-  border-color: #D4AF37;
-}
-.svc-new-top {
-  padding: 26px 22px 18px;
-  background: linear-gradient(135deg, #01411C 0%, #0B6E3C 100%);
-  position: relative; overflow: hidden;
-}
-.svc-new-top::after {
-  content: ''; position: absolute;
-  bottom: -30px; right: -30px;
-  width: 100px; height: 100px; border-radius: 50%;
-  background: rgba(255,255,255,.06);
-}
-.svc-new-emoji {
-  font-size: 34px; display: block; margin-bottom: 12px;
-  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
-  position: relative; z-index: 1;
-}
-.svc-new-card:hover .svc-new-emoji { transform: scale(1.25) rotate(-10deg); }
-.svc-new-card-title { font-size: 15px; font-weight: 700; color: #fff; position: relative; z-index: 1; }
-
-.svc-new-body { padding: 18px 22px 22px; }
-.svc-new-body p { font-size: 13px; color: #6B7280; line-height: 1.75; margin-bottom: 14px; }
-.svc-new-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-.svc-new-tag {
-  font-size: 11px; font-weight: 600; color: #01411C;
-  background: rgba(1,65,28,.08); padding: 3px 10px; border-radius: 20px;
-  border: 1px solid rgba(1,65,28,.15);
-}
-.svc-new-link {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-size: 12.5px; font-weight: 700; color: #D4AF37;
-  text-decoration: none;
-  transition: gap .2s ease;
-}
-.svc-new-card:hover .svc-new-link { gap: 10px; }
-
-/* ══════════════════════
-   URDU FIXES (same as before)
-══════════════════════ */
-body.lang-ur { line-height: 2.2; letter-spacing: 0; direction: rtl; text-align: right; }
-body.lang-ur p.ur, body.lang-ur li.ur { line-height: 2.4; display: block; margin-bottom: 0.5rem; }
-body.lang-ur span.ur { display: inline; margin-bottom: 0; }
-body.lang-ur h1.ur, body.lang-ur h2.ur, body.lang-ur h3.ur, body.lang-ur h4.ur { line-height: 2; padding-top: 0.3rem; padding-bottom: 0.2rem; margin-bottom: 0.6rem; }
-body.lang-ur .nav-brand-text strong, body.lang-ur .nav-brand-text span { line-height: 2; }
-body.lang-ur .nav-links a.ur { padding: 10px 14px; line-height: 2; height: auto; }
-body.lang-ur .hero-eyebrow span.ur { line-height: 2; font-size: 13px; }
-body.lang-ur .hero-h1.ur, body.lang-ur .hero-h1 span.ur { line-height: 1.9; display: block; }
-body.lang-ur .hero-sub.ur { line-height: 2.6; margin-bottom: 2.2rem; }
-body.lang-ur .hero-tag.ur { line-height: 2; padding: 2px 0; }
-body.lang-ur .stat span.ur { line-height: 2.2; margin-top: 4px; display: block; }
-body.lang-ur .sec-head h2.ur { line-height: 2; margin-bottom: 14px; }
-body.lang-ur .about-box p.ur, body.lang-ur .svc-card p.ur { line-height: 2.5; margin-bottom: 14px; }
-body.lang-ur .svc-card li.ur { padding: 8px 0; line-height: 2.2; }
-body.lang-ur .lead-para.ur { line-height: 2.6; margin-bottom: 18px; }
-body.lang-ur .fc h3.ur { line-height: 2; padding-bottom: 10px; margin-bottom: 14px; }
-body.lang-ur .fc p.ur { line-height: 2.4; margin-bottom: 6px; }
-body.lang-ur .fc ul li a.ur { line-height: 2.4; padding: 4px 0; display: block; }
-body.lang-ur .footer-bottom p.ur { line-height: 2.2; margin: 8px 0; }
-body.lang-ur .site-nav { flex-direction: row-reverse; }
-body.lang-ur .nav-brand { flex-direction: row-reverse; }
-body.lang-ur .nav-links { flex-direction: row-reverse; }
-body.lang-ur .nav-right { flex-direction: row-reverse; }
-body.lang-ur .hero-body { text-align: right; }
-body.lang-ur .hero-eyebrow { flex-direction: row-reverse; }
-body.lang-ur .hero-tags { flex-direction: row-reverse; }
-body.lang-ur .sec-bar { transform-origin: right; }
-body.lang-ur .fc ul li { padding-left: 0; padding-right: 14px; }
-body.lang-ur .fc ul li a::before { left: auto; right: -14px; }
-body.lang-ur .fc ul li a:hover::before { left: auto; right: 0; }
-body.lang-ur .fc ul li a:hover { padding-left: 0; padding-right: 4px; }
-body.lang-ur .fc h3::after { left: auto; right: 0; }
-body.lang-ur .footer-bottom { direction: rtl; }
-body.lang-ur .social-row { flex-direction: row-reverse; }
-body.lang-ur .agc-title.ur, body.lang-ur .agc-body.ur { display: block; }
-body.lang-ur .about-new-eyebrow { flex-direction: row-reverse; }
-body.lang-ur .svc-new-eyebrow { flex-direction: row-reverse; }
 </style>
 </head>
 <body>
 
-<!-- ══ NAV ══ -->
-<nav class="site-nav" id="mainNav">
-  <a href="{{ url_for('home') }}" class="nav-brand">
-    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP Logo">
-    <div class="nav-brand-text">
-      <strong class="en">Government of Pakistan</strong>
-      <strong class="ur">حکومت پاکستان</strong>
-      <span class="en">DGIP — Ministry of Interior</span>
-      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
-    </div>
-  </a>
-  <div class="nav-links">
-    <a href="{{ url_for('home') }}" class="active en">Home</a>
-    <a href="{{ url_for('home') }}" class="active ur">ہوم</a>
-    <a href="#services" class="en">Services</a>
-    <a href="#services" class="ur">خدمات</a>
-    <a href="#" class="en">Offices</a>
-    <a href="#" class="ur">دفاتر</a>
-    <a href="#" class="en">Track Status</a>
-    <a href="#" class="ur">درخواست ٹریک</a>
-    <a href="#" class="en">Contact</a>
-    <a href="#" class="ur">رابطہ</a>
-    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
-    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
-<li><a href="{{ url_for('voice_agent') }}" data-en="Voice Agent" data-ur="اے آئی مدد">AI Assistance</a></li>
-    
-   
-  </div>
-  <div class="nav-right">
-    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
-    <a href="{{ url_for('signin') }}" class="btn-nav-signin en">Sign In</a>
-    <a href="{{ url_for('signin') }}" class="btn-nav-signin ur">سائن ان</a>
-    <a href="{{ url_for('signup') }}" class="btn-nav-register en">Register</a>
-    <a href="{{ url_for('signup') }}" class="btn-nav-register ur">رجسٹر</a>
-  </div>
-</nav>
+<!-- SVG icon set: one stroke weight, drawn for this page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4z"/><path d="M13 7v12" stroke-dasharray="2 2.5"/></symbol>
+  <symbol id="i-door" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h16M6 21V4h12v17"/><circle cx="14.5" cy="13" r=".8" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+</svg>
 
-<!-- ══ HERO ══ -->
-<section class="hero-section" style="position:relative;overflow:hidden;">
-  <div class="hero-bg" id="heroBg">
-    <img src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="Faisal Masjid Islamabad" id="heroImg">
-  </div>
-
-  <!-- LIVE EFFECT: clouds + particles canvas -->
-  <canvas class="hero-canvas-clouds" id="heroCanvas"></canvas>
-  <!-- LIVE EFFECT: shimmer lights canvas -->
-  <canvas class="hero-canvas-shimmer" id="shimmerCanvas"></canvas>
-
-  <div class="hero-body">
-    <div class="hero-eyebrow">
-      <div class="eyebrow-dot"></div>
-      <span class="en">Official Citizen Portal</span>
-      <span class="ur">سرکاری شہری پورٹل</span>
-    </div>
-    <h1 class="hero-h1" id="heroTitle">
-      <span class="en"><em>Welcome to</em><br>Official Passport Services<br>of Pakistan</span>
-      <span class="ur"><em>سرکاری پاسپورٹ</em><br>خدمات پاکستان</span>
-    </h1>
-    <p class="hero-sub en">Apply for your passport online with ease and track your application in real-time. Authorized travel documentation for Pakistani citizens worldwide.</p>
-    <p class="hero-sub ur">آن لائن پاسپورٹ کے لیے درخواست دیں اور اپنی درخواست کو حقیقی وقت میں ٹریک کریں۔</p>
-    <div class="hero-tags">
-      <div class="hero-tag en">Secure</div>
-      <div class="hero-tag en">Efficient</div>
-      <div class="hero-tag en">ICAO Compliant</div>
-      <div class="hero-tag en">Ministry of Interior</div>
-      <div class="hero-tag ur">محفوظ</div>
-      <div class="hero-tag ur">مؤثر</div>
-      <div class="hero-tag ur">آئی کے اے او</div>
-      <div class="hero-tag ur">وزارت داخلہ</div>
-    </div>
-    <div class="hero-actions">
-      <a href="{{ url_for('signup') }}" class="btn-hero-primary en">Apply for Passport</a>
-      <a href="{{ url_for('signup') }}" class="btn-hero-primary ur">پاسپورٹ درخواست</a>
-      <a href="#services" class="btn-hero-ghost en">View Services</a>
-      <a href="#services" class="btn-hero-ghost ur">خدمات دیکھیں</a>
-    </div>
-  </div>
-
-  <!-- Glass stat card — bottom left -->
-  <div class="hero-glass-card">
-    <div class="hgc-num">3M<span>+</span></div>
-    <div class="hgc-label">Passports Issued Annually</div>
-    <a href="#" class="hgc-btn">
-      <div class="hgc-btn-icon">→</div>
-      Track Status
+<header class="hero" id="hero">
+  <div class="hero-bg" id="heroBg" aria-hidden="true"><img src="{{ url_for('static', filename='images/faisal_masjid.png') }}" alt="" id="heroImg"></div>
+  <nav class="nav m-in" aria-label="Main">
+    <a class="brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP logo">
+      <span>
+        <span class="brand-name">PassQ</span>
+        <span class="brand-sub"><span class="en">by DGIP · Government of Pakistan</span><span class="ur" lang="ur">ڈی جی آئی پی کی سروس · حکومتِ پاکستان</span></span>
+      </span>
     </a>
+    <div class="nav-links">
+      <a href="#how"><span class="en">How it works</span><span class="ur" lang="ur">طریقہ کار</span></a>
+      <a href="#arrive"><span class="en">Arrival times</span><span class="ur" lang="ur">آمد کے اوقات</span></a>
+      <a href="#offices"><span class="en">Offices</span><span class="ur" lang="ur">دفاتر</span></a>
+    </div>
+    <div class="nav-right">
+      <button class="lang-switch to-ur" id="langSwitch" type="button" onclick="toggleLang()" aria-label="Switch language">اردو</button>
+      <a class="signin" href="{{ url_for('signin') }}"><span class="en">Sign in</span><span class="ur" lang="ur">سائن اِن</span></a>
+    </div>
+  </nav>
+
+  <div class="hook">
+    <h1 class="m-in" id="hookTitle">
+      <span class="en">Book your <em>Regional</em> appointment.</span>
+      <span class="ur" lang="ur">اپنے <em>علاقائی دفتر</em> میں اپائنٹمنٹ بُک کریں۔</span>
+    </h1>
+    <p class="sub m-in">
+      <span class="en">Just speak in Urdu. No form, no login. You get a token number and the time to arrive.</span>
+      <span class="ur" lang="ur">بس اردو میں بولیں۔ نہ فارم، نہ لاگ اِن۔ آپ کو ٹوکن نمبر اور پہنچنے کا وقت مل جائے گا۔</span>
+    </p>
+    <div class="cta">
+      <a class="btn btn-speak m-in" href="{{ url_for('voice_agent') }}">
+        <span class="mic"><svg><use href="#i-mic"/></svg></span>
+        <span class="en">Speak to book</span><span class="ur" lang="ur">بول کر بُک کریں</span>
+      </a>
+      <a class="btn btn-line m-in" href="{{ url_for('signup') }}"><span class="en">Use the web form</span><span class="ur" lang="ur">ویب فارم استعمال کریں</span></a>
+    </div>
   </div>
 
-  <!-- Corner cutout card — bottom right (RIVR style) -->
-  <div class="hero-corner-card">
-    <!-- corner masks so the card blends with page bg -->
-    <svg class="mask-top" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22 22V0C22 12.15 12.15 22 0 22H22Z" fill="#F5F7FA"/>
-    </svg>
-    <svg class="mask-left" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M22 22H0C12.15 22 22 12.15 22 0V22Z" fill="#F5F7FA"/>
-    </svg>
-    <div class="hcc-icon">🏢</div>
+    <div class="ticket-hold">
+      <article class="ticket m-in" id="ticket" aria-label="Sample appointment ticket">
+        <div class="t-main">
+          <div class="t-route t-print"><span class="en">PASSQ · REGIONAL PASSPORT OFFICE</span><span class="ur" lang="ur">پاس کیو · علاقائی پاسپورٹ دفتر</span></div>
+          <span class="t-label t-print"><span class="en">Token</span><span class="ur" lang="ur">ٹوکن</span></span>
+          <div class="t-num tnum t-print" id="tokenNum">0147</div>
+          <span class="t-label t-print"><span class="en">Office</span><span class="ur" lang="ur">دفتر</span></span>
+          <div class="t-office t-print"><span class="en">G-10 Markaz, Islamabad</span><span class="ur" lang="ur">جی-10 مرکز، اسلام آباد</span></div>
+          <span class="t-label t-print"><span class="en">Arrive between</span><span class="ur" lang="ur">پہنچنے کا وقت</span></span>
+          <div class="t-time tnum t-print"><span class="en">9:20 – 9:40 AM</span><span class="ur" lang="ur" dir="rtl">صبح 9:20 – 9:40</span></div>
+        </div>
+        <div class="t-side">
+          <span class="t-serial tnum t-print"><span class="en">No.</span><span class="ur" lang="ur">نمبر</span> 0147</span>
+          <div class="stamp tnum" id="stamp"><small><span class="en">ISSUED</span><span class="ur" lang="ur">جاری</span></small><span id="stD">22</span><br><span class="en" id="stM">NOV</span><span class="ur" lang="ur" id="stMu">نومبر</span><br><span id="stY">2026</span></div>
+          <span class="t-sample t-print"><span class="en">Sample ticket</span><span class="ur" lang="ur">نمونہ ٹکٹ</span></span>
+        </div>
+      </article>
+    </div>
+</header>
+
+<main>
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <div class="wrap how">
+      <div class="how-head">
+        <h2 class="h2 rv"><span class="en">Four stops, one ticket.</span><span class="ur" lang="ur">چار مرحلے، ایک ٹکٹ۔</span></h2>
+        <p class="lead rv"><span class="en">Booking by voice follows the same rules as the web form, without the typing.</span><span class="ur" lang="ur">آواز سے بُکنگ کے اصول وہی ہیں جو ویب فارم کے ہیں، بس ٹائپ نہیں کرنا پڑتا۔</span></p>
+      </div>
+      <div class="route" id="route">
+        <span class="route-track" aria-hidden="true"></span>
+        <span class="route-fill" id="routeFill" aria-hidden="true"></span>
+        <ol class="stops">
+        <li class="stop">
+          <span class="dot"><svg><use href="#i-mic"/></svg></span>
+          <h3><span class="en">Speak</span><span class="ur" lang="ur">بولیں</span></h3>
+          <p><span class="en">Tap Speak to book and answer in Urdu: your name, CNIC number and where you live.</span><span class="ur" lang="ur">«بول کر بُک کریں» دبائیں اور اردو میں جواب دیں: اپنا نام، شناختی کارڈ نمبر اور رہائش کا علاقہ۔</span></p>
+        </li>
+        <li class="stop">
+          <span class="dot"><svg><use href="#i-pin"/></svg></span>
+          <h3><span class="en">Choose your office</span><span class="ur" lang="ur">اپنا دفتر چنیں</span></h3>
+          <p><span class="en">Pick one of 41 regional offices. Offices near you are offered first.</span><span class="ur" lang="ur">41 علاقائی دفاتر میں سے ایک چنیں۔ آپ کے قریب والے دفاتر پہلے بتائے جاتے ہیں۔</span></p>
+        </li>
+        <li class="stop">
+          <span class="dot"><svg><use href="#i-ticket"/></svg></span>
+          <h3><span class="en">Get your ticket</span><span class="ur" lang="ur">اپنا ٹکٹ لیں</span></h3>
+          <p><span class="en">You get a token number, a 20-minute arrival window and a PDF receipt with a QR code.</span><span class="ur" lang="ur">آپ کو ٹوکن نمبر، 20 منٹ کا آمد کا وقت اور کیو آر کوڈ والی پی ڈی ایف رسید ملتی ہے۔</span></p>
+        </li>
+        <li class="stop">
+          <span class="dot"><svg><use href="#i-door"/></svg></span>
+          <h3><span class="en">Visit the office</span><span class="ur" lang="ur">دفتر جائیں</span></h3>
+          <p><span class="en">Arrive within your window and show your receipt at the counter.</span><span class="ur" lang="ur">اپنے وقت کے اندر پہنچیں اور کاؤنٹر پر اپنی رسید دکھائیں۔</span></p>
+        </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARRIVAL WINDOWS -->
+  <section id="arrive" class="arrive">
+    <div class="wrap arrive-grid">
+      <div>
+        <h2 class="h2 rv"><span class="en">Know when to arrive.</span><span class="ur" lang="ur">جانیں کب پہنچنا ہے۔</span></h2>
+        <p class="lead rv"><span class="en">Windows start at 8:00 AM. Every 35 tokens share one 20-minute window, so token 1 arrives at 8:00 AM and token 800 at 3:20 PM.</span><span class="ur" lang="ur">آمد کا وقت صبح 8 بجے سے شروع ہوتا ہے۔ ہر 35 ٹوکن کو 20 منٹ کا ایک وقت ملتا ہے، یعنی ٹوکن 1 صبح 8 بجے اور ٹوکن 800 سہ پہر 3:20 پر۔</span></p>
+        <div class="lookup rv">
+          <div>
+            <label for="tokenIn"><span class="en">Type a token number</span><span class="ur" lang="ur">ٹوکن نمبر لکھیں</span></label>
+            <input id="tokenIn" type="text" inputmode="numeric" maxlength="3" value="147" autocomplete="off" aria-describedby="tokenErr">
+          </div>
+          <div class="lookup-out" aria-live="polite"><span class="en">Arrive between</span><span class="ur" lang="ur">اس وقت کے درمیان پہنچیں</span><b id="windowOut" class="tnum">9:20 – 9:40 AM</b></div>
+        </div>
+        <p class="lookup-err" id="tokenErr"></p>
+      </div>
+      <div class="board rv" id="board" aria-label="Arrival windows">
+        <div class="board-row board-head"><span><span class="en">Window</span><span class="ur" lang="ur">وقت</span></span><span><span class="en">Tokens</span><span class="ur" lang="ur">ٹوکن</span></span></div>
+        <div id="boardRows"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TWO WAYS -->
+  <section id="ways">
+    <div class="wrap">
+      <h2 class="h2 rv"><span class="en">Two ways to book.</span><span class="ur" lang="ur">بُکنگ کے دو طریقے۔</span></h2>
+      <div class="ways">
+        <div class="way way-voice rv">
+          <h3><span class="en">By voice</span><span class="ur" lang="ur">آواز سے</span></h3>
+          <ul>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">No account needed</span><span class="ur" lang="ur">اکاؤنٹ کی ضرورت نہیں</span></span></li>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">Speak in Urdu, read along on screen</span><span class="ur" lang="ur">اردو میں بولیں، اسکرین پر ساتھ پڑھیں</span></span></li>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">Only your name, CNIC and office</span><span class="ur" lang="ur">صرف نام، شناختی کارڈ اور دفتر</span></span></li>
+          </ul>
+          <div class="acts"><a class="btn btn-speak" href="{{ url_for('voice_agent') }}"><span class="mic"><svg style="color:var(--green)"><use href="#i-mic"/></svg></span><span class="en">Speak to book</span><span class="ur" lang="ur">بول کر بُک کریں</span></a></div>
+        </div>
+        <div class="way way-web rv">
+          <h3><span class="en">By web form</span><span class="ur" lang="ur">ویب فارم سے</span></h3>
+          <ul>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">Create an account with your email</span><span class="ur" lang="ur">اپنی ای میل سے اکاؤنٹ بنائیں</span></span></li>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">Fill in the full application</span><span class="ur" lang="ur">مکمل درخواست فارم بھریں</span></span></li>
+            <li><svg><use href="#i-check"/></svg><span><span class="en">Upload your documents</span><span class="ur" lang="ur">اپنی دستاویزات اپ لوڈ کریں</span></span></li>
+          </ul>
+          <div class="acts">
+            <a class="btn btn-line" href="{{ url_for('signup') }}"><span class="en">Register</span><span class="ur" lang="ur">رجسٹر کریں</span></a>
+            <a class="btn btn-line" href="{{ url_for('signin') }}"><span class="en">Sign in</span><span class="ur" lang="ur">سائن اِن</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- OFFICES -->
+  <section id="offices" style="padding-top:0">
+    <div class="wrap">
+      <h2 class="h2 rv"><span class="en">41 regional offices.</span><span class="ur" lang="ur">41 علاقائی دفاتر۔</span></h2>
+      <p class="lead rv"><span class="en">In every province, Gilgit-Baltistan and Azad Kashmir. Each office issues up to 800 tokens a day.</span><span class="ur" lang="ur">ہر صوبے، گلگت بلتستان اور آزاد کشمیر میں۔ ہر دفتر روزانہ 800 تک ٹوکن جاری کرتا ہے۔</span></p>
+      <div class="offices" id="officeList"></div>
+    </div>
+  </section>
+
+  <!-- CLOSE -->
+  <section class="close">
+    <div class="wrap">
+      <h2 class="h2 rv"><span class="en">Just speak.</span><span class="ur" lang="ur">بس بولیں۔</span></h2>
+      <p class="lead rv"><span class="en">Tokens are issued until 7:00 PM, Pakistan time.</span><span class="ur" lang="ur">ٹوکن پاکستان کے وقت کے مطابق شام 7 بجے تک جاری ہوتے ہیں۔</span></p>
+      <a class="btn btn-speak rv" href="{{ url_for('voice_agent') }}"><span class="mic"><svg><use href="#i-mic"/></svg></span><span class="en">Speak to book</span><span class="ur" lang="ur">بول کر بُک کریں</span></a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
     <div>
-      <div class="hcc-title">45+ Offices Nationwide</div>
-      <div class="hcc-sub">Find nearest office →</div>
+      <a class="brand" href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="" width="32" height="32"><span class="brand-name">PassQ</span></a>
+      <p><span class="en">A service of the Directorate General of Immigration &amp; Passports, Ministry of Interior, Government of Pakistan.</span><span class="ur" lang="ur">ڈائریکٹوریٹ جنرل امیگریشن اینڈ پاسپورٹس، وزارتِ داخلہ، حکومتِ پاکستان کی سروس۔</span></p>
+      <p class="tnum">051-111-344-777 · info@dgip.gov.pk · <span class="en">G-8/1 Mauve Area, Islamabad</span><span class="ur" lang="ur">جی-8/1 ماؤ ایریا، اسلام آباد</span></p>
     </div>
-  </div>
-
-  <div class="hero-scroll-hint en">Scroll</div>
-</section>
-
-<!-- ══ STATS ══ -->
-<div class="stats-bar" id="statsBar">
-  <div class="stat">
-    <strong data-target="45" data-suffix="+">0+</strong>
-    <span class="en">Regional Offices</span>
-    <span class="ur">علاقائی دفاتر</span>
-  </div>
-  <div class="stat">
-    <strong data-target="3" data-suffix="M+">0</strong>
-    <span class="en">Passports Annually</span>
-    <span class="ur">سالانہ پاسپورٹ</span>
-  </div>
-  <div class="stat">
-    <strong>24hr</strong>
-    <span class="en">Express Processing</span>
-    <span class="ur">فوری کارروائی</span>
-  </div>
-  <div class="stat">
-    <strong>ICAO</strong>
-    <span class="en">Compliant Standard</span>
-    <span class="ur">معیار کے مطابق</span>
-  </div>
-</div>
-
-<!-- ══ ABOUT — NEW STYLE ══ -->
-<section id="about" class="section-about-new">
-  <div class="about-new-inner">
-    <div class="about-new-eyebrow reveal-fade">Ministry of Interior — Government of Pakistan</div>
-    <h2 class="about-new-title reveal">
-      <span class="en">About <span>DGIP</span></span>
-      <span class="ur">ڈائریکٹوریٹ جنرل کے <span>بارے میں</span></span>
-    </h2>
-    <div class="about-gold-bar reveal"></div>
-    <p class="lead-para en reveal" style="color:rgba(255,255,255,.65);text-align:left;max-width:700px;margin:0 0 36px;">
-      The Directorate General of Immigration &amp; Passports (DGI&amp;P) is the authorized body under the Ministry of Interior responsible for issuing travel documents to Pakistani citizens. Operating through 45+ regional offices across Pakistan and internationally.
-    </p>
-    <p class="lead-para ur reveal" style="color:rgba(255,255,255,.65);text-align:right;max-width:700px;margin:0 0 36px;">
-      ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس وزارت داخلہ کے تحت پاکستانی شہریوں کو سفری دستاویزات جاری کرنے کا مجاز ادارہ ہے۔
-    </p>
-    <div class="about-new-grid reveal-group">
-      <div class="about-glass-card reveal">
-        <div class="agc-icon">🎯</div>
-        <div class="agc-title en">Our Mission</div>
-        <div class="agc-title ur" style="display:none">ہمارا مشن</div>
-        <div class="agc-body en">To provide secure, efficient, and accessible passport services to all Pakistani citizens with the highest standards of integrity and professionalism.</div>
-        <div class="agc-body ur" style="display:none">تمام پاکستانی شہریوں کو اعلیٰ ترین معیار کے ساتھ محفوظ اور موثر پاسپورٹ خدمات فراہم کرنا۔</div>
-      </div>
-      <div class="about-glass-card reveal">
-        <div class="agc-icon">🌐</div>
-        <div class="agc-title en">Our Vision</div>
-        <div class="agc-title ur" style="display:none">ہماری وژن</div>
-        <div class="agc-body en">To be a model institution for travel document security and citizen service delivery across Pakistan and abroad.</div>
-        <div class="agc-body ur" style="display:none">سفری دستاویزات کی حفاظت اور شہری خدمات میں ایک مثالی ادارے کے طور پر پہچانا جانا۔</div>
-      </div>
+    <div class="foot-links">
+      <a href="{{ url_for('voice_agent') }}"><span class="en">Voice booking</span><span class="ur" lang="ur">آواز سے بُکنگ</span></a>
+      <a href="{{ url_for('signup') }}"><span class="en">Register</span><span class="ur" lang="ur">رجسٹر</span></a>
+      <a href="{{ url_for('signin') }}"><span class="en">Sign in</span><span class="ur" lang="ur">سائن اِن</span></a>
     </div>
-  </div>
-</section>
-
-<!-- ══ SERVICES — NEW STYLE ══ -->
-<section id="services" class="section-services-new">
-  <div class="svc-new-inner">
-    <div class="svc-new-head reveal">
-      <div class="svc-new-eyebrow en">What We Offer</div>
-      <div class="svc-new-eyebrow ur" style="display:none">ہماری خدمات</div>
-      <h2 class="svc-new-title en">Our <span>Services</span></h2>
-      <h2 class="svc-new-title ur" style="display:none">ہماری <span>خدمات</span></h2>
-      <div class="svc-gold-bar"></div>
-      <p class="svc-new-sub en">Comprehensive passport and travel documentation services for Pakistani citizens</p>
-      <p class="svc-new-sub ur" style="display:none">پاکستانی شہریوں کے لیے پاسپورٹ اور سفری دستاویزات کی مکمل خدمات</p>
-    </div>
-    <div class="svc-new-grid reveal-group">
-      <div class="svc-new-card reveal">
-        <div class="svc-new-top">
-          <span class="svc-new-emoji">📝</span>
-          <div class="svc-new-card-title en">New Passport Application</div>
-          <div class="svc-new-card-title ur" style="display:none">نئے پاسپورٹ کی درخواست</div>
-        </div>
-        <div class="svc-new-body">
-          <p class="en">Apply for your first passport online with complete step-by-step guidance.</p>
-          <p class="ur" style="display:none">مکمل رہنمائی کے ساتھ پہلی بار آن لائن پاسپورٹ درخواست جمع کریں۔</p>
-          <div class="svc-new-tags">
-            <span class="svc-new-tag en">36 or 72 pages</span>
-            <span class="svc-new-tag en">5 or 10 years</span>
-            <span class="svc-new-tag en">Biometric</span>
-            <span class="svc-new-tag ur" style="display:none">36 یا 72 صفحات</span>
-            <span class="svc-new-tag ur" style="display:none">5 یا 10 سال</span>
-          </div>
-          <a href="{{ url_for('signup') }}" class="svc-new-link en">Apply Now →</a>
-          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">ابھی درخواست دیں ←</a>
-        </div>
-      </div>
-      <div class="svc-new-card reveal">
-        <div class="svc-new-top">
-          <span class="svc-new-emoji">🔄</span>
-          <div class="svc-new-card-title en">Passport Renewal</div>
-          <div class="svc-new-card-title ur" style="display:none">پاسپورٹ کی تجدید</div>
-        </div>
-        <div class="svc-new-body">
-          <p class="en">Renew your expired or expiring passport online with minimal documentation.</p>
-          <p class="ur" style="display:none">کم دستاویزات کے ساتھ آن لائن پاسپورٹ کی تجدید کریں۔</p>
-          <div class="svc-new-tags">
-            <span class="svc-new-tag en">Simple process</span>
-            <span class="svc-new-tag en">Home delivery</span>
-            <span class="svc-new-tag ur" style="display:none">آسان عمل</span>
-            <span class="svc-new-tag ur" style="display:none">گھر ڈیلیوری</span>
-          </div>
-          <a href="{{ url_for('signup') }}" class="svc-new-link en">Renew Now →</a>
-          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">ابھی تجدید کریں ←</a>
-        </div>
-      </div>
-      <div class="svc-new-card reveal">
-        <div class="svc-new-top">
-          <span class="svc-new-emoji">⚡</span>
-          <div class="svc-new-card-title en">Urgent / Express Passport</div>
-          <div class="svc-new-card-title ur" style="display:none">فوری پاسپورٹ</div>
-        </div>
-        <div class="svc-new-body">
-          <p class="en">Emergency passport services for urgent travel with fast-track processing.</p>
-          <p class="ur" style="display:none">فوری سفر کے لیے تیز رفتار پاسپورٹ خدمات۔</p>
-          <div class="svc-new-tags">
-            <span class="svc-new-tag en">2–3 days</span>
-            <span class="svc-new-tag en">Same day</span>
-            <span class="svc-new-tag en">Emergency</span>
-            <span class="svc-new-tag ur" style="display:none">2–3 دن</span>
-            <span class="svc-new-tag ur" style="display:none">فوری</span>
-          </div>
-          <a href="{{ url_for('signup') }}" class="svc-new-link en">Apply Urgent →</a>
-          <a href="{{ url_for('signup') }}" class="svc-new-link ur" style="display:none">فوری درخواست ←</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ FOOTER ══ -->
-<footer class="site-footer">
-  <div class="container">
-    <div class="footer-grid">
-      <div class="fc reveal-left">
-        <h3 class="en">About DGI&amp;P</h3>
-        <h3 class="ur">ڈی جی آئی پی</h3>
-        <p class="en">The authorized body for issuing passports to Pakistani citizens under the Ministry of Interior.</p>
-        <p class="ur">وزارت داخلہ کے تحت پاکستانی شہریوں کو پاسپورٹ جاری کرنے کا مجاز ادارہ۔</p>
-        <div class="social-row">
-          <a href="#">Facebook</a><a href="#">Twitter</a><a href="#">Instagram</a>
-        </div>
-      </div>
-      <div class="fc reveal">
-        <h3 class="en">Quick Links</h3>
-        <h3 class="ur">فوری روابط</h3>
-        <ul>
-          <li><a href="{{ url_for('home') }}" class="en">Home</a><a href="{{ url_for('home') }}" class="ur">ہوم</a></li>
-          <li><a href="#about" class="en">About Us</a><a href="#about" class="ur">ہمارے بارے میں</a></li>
-          <li><a href="#services" class="en">Services</a><a href="#services" class="ur">خدمات</a></li>
-          <li><a href="{{ url_for('signup') }}" class="en">Apply Online</a><a href="{{ url_for('signup') }}" class="ur">آن لائن درخواست</a></li>
-        </ul>
-      </div>
-      <div class="fc reveal">
-        <h3 class="en">Contact Us</h3>
-        <h3 class="ur">رابطہ</h3>
-        <p>📞 051-111-222-887</p>
-        <p>📧 info@dgip.gov.pk</p>
-        <p class="en">📍 G-8/4, Islamabad, Pakistan</p>
-        <p class="ur">📍 جی-8/4، اسلام آباد</p>
-        <p class="en">⏰ Mon–Fri: 8:00 AM – 2:00 PM</p>
-        <p class="ur">⏰ پیر–جمعہ: صبح 8 – دوپہر 2</p>
-      </div>
-      <div class="fc reveal">
-        <h3 class="en">Important Links</h3>
-        <h3 class="ur">اہم روابط</h3>
-        <ul>
-          <li><a href="#" class="en">Ministry of Interior</a><a href="#" class="ur">وزارت داخلہ</a></li>
-          <li><a href="#" class="en">Government of Pakistan</a><a href="#" class="ur">حکومت پاکستان</a></li>
-          <li><a href="#" class="en">NADRA</a><a href="#" class="ur">نادرا</a></li>
-          <li><a href="#" class="en">Privacy Policy</a><a href="#" class="ur">رازداری کی پالیسی</a></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan. All Rights Reserved.</p>
-    <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان۔ جملہ حقوق محفوظ۔</p>
-    <p class="en">Developed by Ministry of Interior – IT Wing</p>
-    <p class="ur">تیار کردہ: وزارت داخلہ — آئی ٹی ونگ</p>
   </div>
 </footer>
 
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script>
-/* ══ SCROLL REVEAL ══ */
-const revealEls = document.querySelectorAll('.reveal,.reveal-fade,.reveal-scale,.reveal-left,.sec-head,.stats-bar');
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
-}, { threshold: 0.15 });
-revealEls.forEach(el => revealObserver.observe(el));
-
-/* ══ STATS COUNTER ══ */
-let statsAnimated = false;
-const statsObserver = new IntersectionObserver((entries) => {
-  if(entries[0].isIntersecting && !statsAnimated){
-    statsAnimated = true;
-    document.querySelectorAll('.stat strong[data-target]').forEach(el => {
-      const target = parseFloat(el.dataset.target);
-      const suffix = el.dataset.suffix || '';
-      const start = performance.now();
-      function update(now){
-        const p = Math.min((now-start)/1400,1);
-        const e = 1-Math.pow(1-p,3);
-        el.textContent = Math.round(e*target)+suffix;
-        if(p<1) requestAnimationFrame(update);
-      }
-      requestAnimationFrame(update);
-    });
-  }
-}, { threshold: 0.5 });
-statsObserver.observe(document.getElementById('statsBar'));
-
-/* ══ HERO PARALLAX ══ */
-const heroImg = document.getElementById('heroImg');
-let ticking = false;
-window.addEventListener('scroll', () => {
-  if(!ticking){ requestAnimationFrame(()=>{ heroImg.style.transform=`scale(1.08) translateY(${window.scrollY*.4}px)`; ticking=false; }); ticking=true; }
-}, {passive:true});
-
-/* ══ NAV SCROLL ══ */
-const nav = document.getElementById('mainNav');
-window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 60); }, {passive:true});
-
-/* ══ LIVE EFFECT 1: CLOUDS + PARTICLES ══ */
 (function(){
-  const c = document.getElementById('heroCanvas');
-  const ctx = c.getContext('2d');
-  const hero = c.parentElement;
-  let W, H;
-  function resize(){ W=c.width=hero.offsetWidth; H=c.height=hero.offsetHeight; }
-  resize();
-  window.addEventListener('resize', resize);
-
-  // Soft cloud glows
-  const clouds = Array.from({length:6}, (_,i) => ({
-    x: Math.random()*W, y: 30+Math.random()*200,
-    w: 150+Math.random()*220, h: 50+Math.random()*60,
-    speed: 0.1+Math.random()*0.18,
-    op: 0.035+Math.random()*0.055
-  }));
-
-  // Gold particles
-  const particles = Array.from({length:50}, () => ({
-    x: Math.random()*W, y: Math.random()*H*0.85,
-    vx: (Math.random()-.5)*0.22, vy: -0.08-Math.random()*0.18,
-    r: Math.random()*1.6+0.4,
-    op: Math.random()*0.45+0.1,
-    gold: Math.random() > 0.55
-  }));
-
-  function draw(){
-    ctx.clearRect(0,0,W,H);
-    // clouds
-    clouds.forEach(cl => {
-      cl.x += cl.speed;
-      if(cl.x > W+cl.w) cl.x = -cl.w;
-      const g = ctx.createRadialGradient(cl.x, cl.y, 0, cl.x, cl.y, cl.w*.55);
-      g.addColorStop(0, `rgba(212,175,55,${cl.op})`);
-      g.addColorStop(1, 'rgba(212,175,55,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.ellipse(cl.x, cl.y, cl.w*.55, cl.h*.45, 0, 0, Math.PI*2);
-      ctx.fill();
-    });
-    // particles
-    particles.forEach(pt => {
-      pt.x += pt.vx; pt.y += pt.vy;
-      if(pt.y < 0){ pt.y=H*.85; pt.x=Math.random()*W; }
-      if(pt.x<0) pt.x=W; if(pt.x>W) pt.x=0;
-      ctx.beginPath();
-      ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI*2);
-      ctx.fillStyle = pt.gold ? `rgba(212,175,55,${pt.op})` : `rgba(255,255,255,${pt.op*.4})`;
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
+  /* ── language: direction + switch label ── */
+  var sw = document.getElementById('langSwitch');
+  function syncLang(){
+    var ur = document.body.classList.contains('lang-ur');
+    document.documentElement.dir = ur ? 'rtl' : 'ltr';
+    document.documentElement.lang = ur ? 'ur' : 'en';
+    sw.textContent = ur ? 'English' : 'اردو';
+    sw.classList.toggle('to-ur', !ur);
+    if (window.ScrollTrigger) ScrollTrigger.refresh();
   }
-  draw();
-})();
+  var baseToggle = window.toggleLang;
+  window.toggleLang = function(){ if (baseToggle) baseToggle(); syncLang(); };
+  syncLang();
 
-/* ══ LIVE EFFECT 2: SHIMMER LIGHTS ══ */
-(function(){
-  const c = document.getElementById('shimmerCanvas');
-  const ctx = c.getContext('2d');
-  const hero = c.parentElement;
-  let W;
-  function resize(){ W=c.width=hero.offsetWidth; c.height=80; }
-  resize();
-  window.addEventListener('resize', resize);
+  /* ── today's date on the stamp (Pakistan time) ── */
+  try {
+    var parts = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Karachi',day:'2-digit',month:'short',year:'numeric'}).formatToParts(new Date());
+    var get = function(t){ return parts.find(function(p){return p.type===t;}).value; };
+    document.getElementById('stD').textContent = get('day');
+    document.getElementById('stM').textContent = get('month').toUpperCase();
+    document.getElementById('stY').textContent = get('year');
+    document.getElementById('stMu').textContent = new Intl.DateTimeFormat('ur-PK',{timeZone:'Asia/Karachi',month:'long'}).format(new Date());
+  } catch(e) {}
 
-  const lights = Array.from({length:32}, (_,i) => ({
-    x: 40+(i/31)*(W-80)*0.7 + W*0.15,
-    phase: Math.random()*Math.PI*2,
-    speed: 0.015+Math.random()*0.025,
-    size: 1.8+Math.random()*3,
-    baseOp: 0.25+Math.random()*0.45
-  }));
-
-  let t = 0;
-  function draw(){
-    ctx.clearRect(0,0,W,80);
-    t += 0.016;
-    lights.forEach(lt => {
-      const op = lt.baseOp*(0.4+0.6*Math.sin(t*lt.speed*60+lt.phase));
-      const g = ctx.createRadialGradient(lt.x,40,0, lt.x,40,lt.size*5);
-      g.addColorStop(0, `rgba(212,175,55,${op})`);
-      g.addColorStop(1, 'rgba(212,175,55,0)');
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(lt.x, 40, lt.size*5, 0, Math.PI*2);
-      ctx.fill();
-    });
-    requestAnimationFrame(draw);
+  /* ── arrival windows: same rule as timeslot.py ── */
+  var PER_SLOT = 35, SLOT_MIN = 20, START = 8*60, MAX = 800, LAST = Math.floor((MAX-1)/PER_SLOT);
+  function fmt(m){ var h=Math.floor(m/60), mm=m%60, ap=h>=12?'PM':'AM', h12=((h+11)%12)+1; return h12+':'+(mm<10?'0':'')+mm+' '+ap; }
+  function win(s){ var a=START+s*SLOT_MIN; var A=fmt(a), B=fmt(a+SLOT_MIN); return A.slice(-2)===B.slice(-2) ? A.slice(0,-3)+' – '+B : A+' – '+B; }
+  function hm(m){ var h=Math.floor(m/60), mm=m%60; return (((h+11)%12)+1)+':'+(mm<10?'0':'')+mm; }
+  function winUr(s){ var a=START+s*SLOT_MIN; var part = a<720 ? 'صبح' : (a<900 ? 'دوپہر' : 'سہ پہر'); return part+' '+hm(a)+' – '+hm(a+SLOT_MIN); }
+  function both(s){ return '<span class="en">'+win(s)+'</span><span class="ur" lang="ur" dir="rtl">'+winUr(s)+'</span>'; }
+  var rows = document.getElementById('boardRows'), out = document.getElementById('windowOut'), err = document.getElementById('tokenErr'), input = document.getElementById('tokenIn');
+  function render(t){
+    var s = Math.floor((t-1)/PER_SLOT), from = Math.max(0, Math.min(s-2, LAST-4)), html='';
+    for (var i=from;i<=Math.min(from+4,LAST);i++){
+      var lo=i*PER_SLOT+1, hi=Math.min((i+1)*PER_SLOT,MAX);
+      html += '<div class="board-row'+(i===s?' now':'')+'"><span class="w">'+both(i)+'</span><span class="t">'+lo+'–'+hi+'</span></div>';
+    }
+    rows.innerHTML = html;
+    out.innerHTML = both(s);
+    if (window.gsap && !reduce) gsap.fromTo('#boardRows .now',{scale:.97},{scale:1,duration:.6,ease:'expo.out'});
   }
-  draw();
-})();
-
-/* ══ URDU MODE: show/hide new section elements ══ */
-// Patch toggleLang to also handle new about/services sections
-const _origToggle = window.toggleLang;
-window.toggleLang = function(){
-  if(_origToggle) _origToggle();
-  const isUr = document.body.classList.contains('lang-ur');
-  // about new
-  document.querySelectorAll('.agc-title, .agc-body, .about-new-eyebrow, .about-new-title, .about-gold-bar, .lead-para, .svc-new-eyebrow, .svc-new-title, .svc-new-sub, .svc-new-card-title, .svc-new-tag, .svc-new-link').forEach(el => {
-    if(el.classList.contains('en')) el.style.display = isUr ? 'none' : '';
-    if(el.classList.contains('ur')) el.style.display = isUr ? '' : 'none';
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  input.addEventListener('input', function(){
+    this.value = this.value.replace(/\D/g,'');
+    var t = parseInt(this.value,10);
+    var ur = document.body.classList.contains('lang-ur');
+    if (!t){ err.textContent=''; return; }
+    if (t<1 || t>MAX){ err.textContent = ur ? 'ٹوکن نمبر 1 سے 800 کے درمیان ہوتا ہے۔' : 'Token numbers run from 1 to 800.'; return; }
+    err.textContent=''; render(t);
   });
-};
+  render(147);
 
-/* ══ REDUCED MOTION ══ */
-if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-  document.querySelectorAll('.reveal,.reveal-fade,.reveal-scale,.reveal-left').forEach(el=>{ el.style.transition='none'; el.classList.add('visible'); });
-}
+  /* ── offices from branches data ── */
+  var OFFICES = [
+    {p:'Islamabad Capital Territory',pu:'اسلام آباد',c:[['Islamabad','اسلام آباد',4]]},
+    {p:'Punjab',pu:'پنجاب',c:[['Lahore','لاہور',7],['Rawalpindi','راولپنڈی',2],['Faisalabad','فیصل آباد',2],['Multan','ملتان',2],['Sialkot','سیالکوٹ',2]]},
+    {p:'Sindh',pu:'سندھ',c:[['Karachi','کراچی',5]]},
+    {p:'Khyber Pakhtunkhwa',pu:'خیبر پختونخوا',c:[['Peshawar','پشاور',2],['Kohat','کوہاٹ',1],['Dera Ismail Khan','ڈیرہ اسماعیل خان',1],['Swat','سوات',1],['Abbottabad','ایبٹ آباد',1]]},
+    {p:'Balochistan',pu:'بلوچستان',c:[['Quetta','کوئٹہ',2],['Zhob','ژوب',1],['Gwadar','گوادر',1],['Turbat','تربت',1]]},
+    {p:'Gilgit-Baltistan',pu:'گلگت بلتستان',c:[['Skardu','سکردو',1],['Gilgit','گلگت',1],['Chilas','چلاس',1]]},
+    {p:'Azad Jammu & Kashmir',pu:'آزاد جموں و کشمیر',c:[['Muzaffarabad','مظفرآباد',1],['Mirpur','میرپور',1],['Kotli','کوٹلی',1]]}
+  ];
+  document.getElementById('officeList').innerHTML = OFFICES.map(function(g){
+    return '<div class="prov rv-prov"><h3><span class="en">'+g.p+'</span><span class="ur" lang="ur">'+g.pu+'</span></h3><ul>'+
+      g.c.map(function(c){ return '<li><span><span class="en">'+c[0]+'</span><span class="ur" lang="ur">'+c[1]+'</span></span><span class="n">'+c[2]+'</span></li>'; }).join('')+'</ul></div>';
+  }).join('');
+
+  /* ── motion ── */
+  if (!window.gsap){ document.documentElement.classList.remove('motion'); document.querySelectorAll('.stop').forEach(function(s){ s.classList.add('is-reached'); }); return; }
+  gsap.registerPlugin(ScrollTrigger);
+  var mm = gsap.matchMedia();
+
+  mm.add('(prefers-reduced-motion: no-preference)', function(){
+    gsap.set('.m-in',{visibility:'visible'});
+    /* the photo settles in first, behind everything */
+    gsap.from('#heroImg',{scale:1.14,autoAlpha:0,duration:2,ease:'expo.out'});
+    var tl = gsap.timeline({defaults:{ease:'expo.out',duration:1},delay:.15});
+    tl.from('.nav',{autoAlpha:0,y:-14,duration:.7})
+      .from('#hookTitle',{autoAlpha:0,y:34,filter:'blur(10px)',duration:1.2},.1)
+      .from('.hook .sub',{autoAlpha:0,y:18},'-=.85')
+      .from('.cta .btn',{autoAlpha:0,y:16,stagger:.08},'-=.8')
+      .from('#ticket',{autoAlpha:0,y:140,rotation:7,duration:1.15},'-=.6')
+      .from('#ticket .t-print',{autoAlpha:0,y:6,stagger:.06,duration:.5},'-=.55');
+    var n = {v:0}, tn = document.getElementById('tokenNum');
+    tl.to(n,{v:147,duration:.9,ease:'power2.out',onUpdate:function(){ tn.textContent = String(Math.round(n.v)).padStart(4,'0'); }},'-=.4')
+      .fromTo('#stamp',{autoAlpha:0,scale:1.9,rotation:-6},{autoAlpha:1,scale:1,rotation:6,duration:.32,ease:'power4.in'},'-=.15')
+      .to('#ticket',{y:4,duration:.07,yoyo:true,repeat:1,ease:'power1.inOut'})
+      .call(function(){ document.querySelector('.hero .btn-speak').classList.add('is-pulsing'); });
+
+    /* the photo fades away as you scroll down, and comes back as you scroll up */
+    /* set straight from the scroll position, so it always matches where you are */
+    var heroEl = document.getElementById('hero'), bg = document.getElementById('heroBg');
+    function fadeHero(){
+      var span = heroEl.offsetHeight * .65, p = Math.min(Math.max(window.scrollY / span, 0), 1);
+      bg.style.opacity = (1 - p).toFixed(3);
+      bg.style.transform = 'scale(' + (1 + p * .06).toFixed(4) + ')';
+      bg.style.visibility = p >= 1 ? 'hidden' : 'visible';
+    }
+    window.addEventListener('scroll', fadeHero, {passive:true});
+    window.addEventListener('resize', fadeHero);
+    fadeHero();
+
+    /* the route line draws itself; each stop lights when the line reaches it */
+    gsap.fromTo('#routeFill',{scaleY:0},{scaleY:1,ease:'none',scrollTrigger:{trigger:'#route',start:'top 65%',end:'bottom 55%',scrub:.6}});
+    gsap.utils.toArray('.stop').forEach(function(s){
+      ScrollTrigger.create({trigger:s,start:'top 62%',onEnter:function(){s.classList.add('is-reached');},onLeaveBack:function(){s.classList.remove('is-reached');}});
+      gsap.from(s.querySelectorAll('h3,p'),{autoAlpha:0,x:document.body.classList.contains('lang-ur')?-24:24,stagger:.08,duration:1,ease:'expo.out',scrollTrigger:{trigger:s,start:'top 80%',once:true}});
+    });
+
+    /* arrival board: rows flip down once, like a station departure board */
+    gsap.from('#boardRows .board-row',{rotationX:-90,transformOrigin:'50% 0%',autoAlpha:0,stagger:.07,duration:.7,ease:'power3.out',scrollTrigger:{trigger:'#board',start:'top 78%',once:true}});
+  });
+
+  mm.add('(prefers-reduced-motion: reduce)', function(){
+    document.documentElement.classList.remove('motion');
+    document.querySelectorAll('.stop').forEach(function(s){ s.classList.add('is-reached'); });
+  });
+})();
 </script>
 </body>
 </html>

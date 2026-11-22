@@ -214,8 +214,16 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+.impeccable/
+.claude/
+# Design helper files (not needed by the app)
+PRODUCT.md
+DESIGN.md
 # Streamlit
 .streamlit/secrets.toml
 
 # Uploaded identity documents (private)
 static/uploads/
+
+# OpenHome ability source (pasted into the OpenHome dashboard; contains the kiosk login)
+openhome_ability/

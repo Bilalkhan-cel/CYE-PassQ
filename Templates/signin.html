@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sign In – DGIP Pakistan</title>
+<title>Sign in – PassQ</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script>try{if(sessionStorage.getItem('authSwap')==='1'){document.documentElement.classList.add('auth-swap');sessionStorage.removeItem('authSwap');}}catch(e){}</script>
 </head>
 <body>
 <div class="auth-page">
@@ -15,8 +16,8 @@
     <a href="{{ url_for('home') }}" class="auth-badge">
       <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
       <div>
-        <strong class="en">DGIP Portal</strong>
-        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <strong class="en">PassQ</strong>
+        <strong class="ur">PassQ</strong>
         <span class="en">Ministry of Interior, Pakistan</span>
         <span class="ur">وزارت داخلہ، پاکستان</span>
       </div>
@@ -49,10 +50,10 @@
 
       <!-- Tabs -->
       <div class="auth-tabs">
-        <button class="auth-tab active en" onclick="">Sign In</button>
-        <button class="auth-tab active ur" onclick="">سائن ان</button>
-        <button class="auth-tab en" onclick="window.location='{{ url_for('signup') }}'">Register</button>
-        <button class="auth-tab ur" onclick="window.location='{{ url_for('signup') }}'">رجسٹر</button>
+        <button type="button" class="auth-tab active en" aria-current="page">Sign In</button>
+        <button type="button" class="auth-tab active ur" aria-current="page">سائن ان</button>
+        <button type="button" class="auth-tab en" data-href="{{ url_for('signup') }}">Register</button>
+        <button type="button" class="auth-tab ur" data-href="{{ url_for('signup') }}">رجسٹر</button>
       </div>
 
       <!-- Welcome -->
@@ -73,16 +74,16 @@
       <!-- Form -->
       <form method="POST">
         <div class="f-group">
-          <label class="f-label en">CNIC Number</label>
-          <label class="f-label ur">شناختی کارڈ نمبر</label>
-          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="1234567890123 (no dashes)" required autocomplete="off">
+          <label class="f-label en" for="cnic">CNIC Number</label>
+          <label class="f-label ur" for="cnic">شناختی کارڈ نمبر</label>
+          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="12345-1234567-1" inputmode="numeric" maxlength="15" required autocomplete="off">
           <span class="f-hint en">Enter your 13-digit national identity number</span>
           <span class="f-hint ur">اپنا 13 ہندسوں کا شناختی کارڈ نمبر درج کریں</span>
         </div>
         <div class="f-group">
-          <label class="f-label en">Password</label>
-          <label class="f-label ur">پاس ورڈ</label>
-          <input class="f-input" type="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+          <label class="f-label en" for="password">Password</label>
+          <label class="f-label ur" for="password">پاس ورڈ</label>
+          <input class="f-input" type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
           <a href="{{ url_for('forgot_password') }}" class="f-hint forgot-link en">Forgot password?</a>
           <a href="{{ url_for('forgot_password') }}" class="f-hint forgot-link ur">پاس ورڈ بھول گئے؟</a>
         </div>
@@ -104,6 +105,7 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth-motion.js') }}"></script>
 <script>
 document.getElementById('cnic').addEventListener('input', function(e) {
   let v = e.target.value.replace(/\D/g,'');

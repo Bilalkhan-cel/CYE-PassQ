@@ -3,93 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Application Error – DGIP Pakistan</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<title>Token not booked – PassQ</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passq.css') }}">
 </head>
 <body>
+{% include "_icons.html" %}
+{% set active = '' %}{% include "_app_nav.html" %}
+{% set full = reason and ('tokens' in reason and ('issued all' in reason or 'full' in reason)) %}
 
-<nav class="site-nav">
-  <a href="{{ url_for('home') }}" class="nav-brand">
-    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
-    <div class="nav-brand-text">
-      <strong class="en">Government of Pakistan</strong>
-      <strong class="ur">حکومت پاکستان</strong>
-      <span class="en">DGIP — Ministry of Interior</span>
-      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
-    </div>
-  </a>
-  <div class="nav-links">
-    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
-    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
+<main class="page page-narrow">
+  <header class="page-head rise">
+    <h1><span class="en">Your token wasn't booked.</span><span class="ur" lang="ur">آپ کا ٹوکن بُک نہیں ہو سکا۔</span></h1>
+    <p><span class="en">{{ name }}, nothing was saved, so no token has been used. Here is what went wrong and what to do next.</span><span class="ur" lang="ur">{{ name }}، کچھ محفوظ نہیں ہوا اس لیے کوئی ٹوکن استعمال نہیں ہوا۔ مسئلہ اور اگلا قدم نیچے دیکھیں۔</span></p>
+  </header>
+
+  <section class="notice rise" style="--d:1" role="alert">
+    <h2><svg class="i" aria-hidden="true"><use href="#i-alert"/></svg><span class="en">What went wrong</span><span class="ur" lang="ur">کیا مسئلہ ہوا</span></h2>
+    <p><span class="en">{{ reason or 'The form could not be submitted.' }}</span><span class="ur" lang="ur">{{ reason_ur | default(reason or 'فارم جمع نہیں ہو سکا۔') }}</span></p>
+    <p><strong>
+      {% if full %}<span class="en">Choose another office: you can pick any office in your province or in Islamabad.</span><span class="ur" lang="ur">کوئی دوسرا دفتر چنیں: آپ اپنے صوبے یا اسلام آباد کا کوئی بھی دفتر چن سکتے ہیں۔</span>
+      {% else %}<span class="en">Open the form again, fix the details above and attach your documents again.</span><span class="ur" lang="ur">فارم دوبارہ کھولیں، اوپر بتائی گئی تفصیل درست کریں اور دستاویزات دوبارہ لگائیں۔</span>{% endif %}
+    </strong></p>
+  </section>
+
+  {% if field_errors %}
+  <dl class="facts rise" style="--d:2">
+    {% for field, msg in field_errors.items() %}{% if msg %}
+    <div><dt>{{ field }}</dt><dd>{{ msg }}</dd></div>
+    {% endif %}{% endfor %}
+  </dl>
+  {% endif %}
+
+  <div class="actions rise" style="--d:3; margin-top:28px">
+    <a class="btn btn-primary" href="{{ url_for('token_form') }}"><svg class="i" aria-hidden="true"><use href="#i-form"/></svg><span class="en">Back to the form</span><span class="ur" lang="ur">فارم پر واپس جائیں</span></a>
+    <a class="btn btn-line" href="{{ url_for('voice_agent') }}"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg><span class="en">Book by speaking instead</span><span class="ur" lang="ur">بول کر بُک کریں</span></a>
   </div>
-  <div class="nav-right">
-    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
-  </div>
-</nav>
+  <dl class="facts rise" style="--d:4">
+    <div><dt><span class="en">Name</span><span class="ur" lang="ur">نام</span></dt><dd>{{ name }}</dd></div>
+    <div><dt><span class="en">Date</span><span class="ur" lang="ur">تاریخ</span></dt><dd class="tnum">{{ pk_today.strftime('%d %b %Y') }}</dd></div>
+  </dl>
+</main>
 
-<div class="ty-wrap">
-  <div class="ty-card">
-    <div class="ty-icon">❌</div>
-    <h1 class="en" style="color:var(--error);">Application Not Processed</h1>
-    <h1 class="ur" style="color:var(--error);">درخواست پر کارروائی نہیں ہو سکی</h1>
-    <p class="en">Dear <strong>{{ name }}</strong>, your application could not be submitted due to the following issue(s).</p>
-    <p class="ur">محترم <strong>{{ name }}</strong>، ذیل کی وجوہات کی بنا پر آپ کی درخواست جمع نہیں ہو سکی۔</p>
-
-    <div class="ty-summary" style="border-left:3px solid var(--error);">
-      <h3 class="en" style="color:var(--error);">Validation Failed</h3>
-      <h3 class="ur" style="color:var(--error);">تصدیق ناکام</h3>
-      <p class="en" style="font-size:.9rem;color:var(--text-muted);">{{ reason }}</p>
-      <p class="ur" style="font-size:.9rem;color:var(--text-muted);">{{ reason_ur | default(reason) }}</p>
-    </div>
-
-    {% if field_errors %}
-    <div class="ty-summary">
-      <h3 class="en">Fields Requiring Correction</h3>
-      <h3 class="ur">درست کرنے والے خانے</h3>
-      {% for field, msg in field_errors.items() %}
-      {% if msg %}
-      <div class="ty-row">
-        <span>{{ field }}</span>
-        <span style="color:var(--error);">{{ msg }}</span>
-      </div>
-      {% endif %}
-      {% endfor %}
-    </div>
-    {% endif %}
-
-    <p class="en" style="font-size:.9rem;">Please go back, correct the highlighted fields, and resubmit your application. No data has been saved.</p>
-    <p class="ur" style="font-size:.9rem;">براہ کرم واپس جائیں، نشان زد خانے درست کریں اور دوبارہ درخواست جمع کریں۔ کوئی ڈیٹا محفوظ نہیں ہوا۔</p>
-
-    <div class="ty-summary">
-      <h3 class="en">Attempt Summary</h3>
-      <h3 class="ur">کوشش کا خلاصہ</h3>
-      <div class="ty-row">
-        <span class="en">Applicant</span><span class="ur">درخواست دہندہ</span>
-        <span>{{ name }}</span>
-      </div>
-      <div class="ty-row">
-        <span class="en">Date</span><span class="ur">تاریخ</span>
-        <span>{{ submission_date }}</span>
-      </div>
-      <div class="ty-row">
-        <span class="en">Status</span><span class="ur">حیثیت</span>
-        <span style="color:var(--error);font-weight:700;">
-          <span class="en">Not Submitted ✗</span><span class="ur">جمع نہیں ہوئی ✗</span>
-        </span>
-      </div>
-    </div>
-
-    <div class="ty-btns">
-      <a href="javascript:history.back()" class="btn btn-primary en">✏️ Fix and Resubmit</a>
-      <a href="javascript:history.back()" class="btn btn-primary ur">✏️ درست کریں اور دوبارہ جمع کریں</a>
-      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green en">📋 Start New Application</a>
-      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green ur">📋 نئی درخواست شروع کریں</a>
-    </div>
-  </div>
-</div>
-
+{% include "_app_footer.html" %}
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
 </body>
 </html>

@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Register – DGIP Pakistan</title>
+<title>Register – PassQ</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script>try{if(sessionStorage.getItem('authSwap')==='1'){document.documentElement.classList.add('auth-swap');sessionStorage.removeItem('authSwap');}}catch(e){}</script>
 <style>
 .auth-right { align-items: flex-start; padding-top: 2rem; padding-bottom: 2rem; }
 .auth-box   { margin: auto 0; padding: .5rem 0; }
@@ -19,8 +20,8 @@
     <a href="{{ url_for('home') }}" class="auth-badge">
       <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
       <div>
-        <strong class="en">DGIP Portal</strong>
-        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <strong class="en">PassQ</strong>
+        <strong class="ur">PassQ</strong>
         <span class="en">Ministry of Interior, Pakistan</span>
         <span class="ur">وزارت داخلہ، پاکستان</span>
       </div>
@@ -51,10 +52,10 @@
       </div>
 
       <div class="auth-tabs">
-       <button class="auth-tab en" onclick="window.location='{{ url_for('signin') }}'">Sign In</button>
-       <button class="auth-tab ur" onclick="window.location='{{ url_for('signin') }}'">سائن ان</button>
-        <button class="auth-tab active en">Register</button>
-        <button class="auth-tab active ur">رجسٹر</button>
+        <button type="button" class="auth-tab en" data-href="{{ url_for('signin') }}">Sign In</button>
+        <button type="button" class="auth-tab ur" data-href="{{ url_for('signin') }}">سائن ان</button>
+        <button type="button" class="auth-tab active en" aria-current="page">Register</button>
+        <button type="button" class="auth-tab active ur" aria-current="page">رجسٹر</button>
       </div>
 
       <div class="auth-welcome">
@@ -72,30 +73,30 @@
 
       <form method="POST">
         <div class="f-group">
-          <label class="f-label en">Full Name *</label>
-          <label class="f-label ur">پورا نام *</label>
-          <input class="f-input" type="text" name="name" placeholder="As written on your CNIC" maxlength="100"
+          <label class="f-label en" for="name">Full Name *</label>
+          <label class="f-label ur" for="name">پورا نام *</label>
+          <input class="f-input" type="text" id="name" name="name" placeholder="As written on your CNIC" maxlength="100"
                  value="{{ form.get('name', '') }}" autocomplete="name" required>
         </div>
         <div class="f-group">
-          <label class="f-label en">CNIC Number *</label>
-          <label class="f-label ur">شناختی کارڈ نمبر *</label>
-          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="12345-6789012-3" maxlength="15"
+          <label class="f-label en" for="cnic">CNIC Number *</label>
+          <label class="f-label ur" for="cnic">شناختی کارڈ نمبر *</label>
+          <input class="f-input" type="text" id="cnic" name="cnic" placeholder="12345-1234567-1" maxlength="15"
                  inputmode="numeric" value="{{ form.get('cnic', '') }}" required>
           <span class="f-hint en">13-digit national identity number</span>
           <span class="f-hint ur">13 ہندسوں کا شناختی کارڈ نمبر</span>
         </div>
         <div class="f-group">
-          <label class="f-label en">Email Address *</label>
-          <label class="f-label ur">ای میل ایڈریس *</label>
-          <input class="f-input" type="email" name="email" placeholder="your@email.com" maxlength="120"
+          <label class="f-label en" for="email">Email Address *</label>
+          <label class="f-label ur" for="email">ای میل ایڈریس *</label>
+          <input class="f-input" type="email" id="email" name="email" placeholder="your@email.com" maxlength="120"
                  value="{{ form.get('email', '') }}" autocomplete="email" required>
           <span class="f-hint en">A verification code will be sent to this email</span>
           <span class="f-hint ur">اس ای میل پر تصدیقی کوڈ بھیجا جائے گا</span>
         </div>
         <div class="f-group">
-          <label class="f-label en">Mobile Number</label>
-          <label class="f-label ur">موبائل نمبر</label>
+          <label class="f-label en" for="phone">Mobile Number</label>
+          <label class="f-label ur" for="phone">موبائل نمبر</label>
           <input class="f-input" type="text" id="phone" name="phone" placeholder="03xx-xxxxxxx" maxlength="12"
                  inputmode="numeric" value="{{ form.get('phone', '') }}">
         </div>
@@ -118,6 +119,7 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth-motion.js') }}"></script>
 <script>
 document.getElementById('cnic').addEventListener('input', function(e) {
   let v = e.target.value.replace(/\D/g,'');

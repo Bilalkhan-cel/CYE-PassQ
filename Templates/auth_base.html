@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}DGIP Pakistan{% endblock %}</title>
+<title>{% block title %}PassQ{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script>try{if(sessionStorage.getItem('authSwap')==='1'){document.documentElement.classList.add('auth-swap');sessionStorage.removeItem('authSwap');}}catch(e){}</script>
 </head>
 <body>
 <div class="auth-page">
@@ -14,8 +15,8 @@
     <a href="{{ url_for('home') }}" class="auth-badge">
       <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
       <div>
-        <strong class="en">DGIP Portal</strong>
-        <strong class="ur">ڈی جی آئی پی پورٹل</strong>
+        <strong class="en">PassQ</strong>
+        <strong class="ur">PassQ</strong>
         <span class="en">Ministry of Interior, Pakistan</span>
         <span class="ur">وزارت داخلہ، پاکستان</span>
       </div>
@@ -62,6 +63,7 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script src="{{ url_for('static', filename='js/auth-motion.js') }}"></script>
 <script>
 // Codes are digits only.
 document.querySelectorAll('input[name="code"]').forEach(function (i) {

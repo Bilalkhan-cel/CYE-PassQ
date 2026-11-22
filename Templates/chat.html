@@ -1,413 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pakistan Passport Office - AI Assistant</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --pakistan-green: #00573F;
-            --pakistan-dark-green: #003d2b;
-            --pakistan-light-green: #00b56a;
-            --white: #ffffff;
-            --light-gray: #f8f9fa;
-            --border-gray: #e1e5e9;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-            --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
-            --border-radius: 8px;
-            --transition: all 0.3s ease;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--light-gray) 0%, #e8f5e8 100%);
-            min-height: 100vh;
-        }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
-
-        .top-bar { background: #1a4d2e; color: white; padding: 10px 0; font-size: 0.9rem; }
-
-        .top-bar-content { display: flex; justify-content: space-between; align-items: center; }
-
-        .contact-info span { margin-right: 25px; }
-
-        .language-selector button {
-            color: white;
-            background: transparent;
-            border: 1px solid white;
-            padding: 2px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: background 0.3s;
-        }
-
-        .language-selector button:hover { background: rgba(255, 255, 255, 0.15); }
-
-        .header-section { background: white; border-bottom: 3px solid #1e5631; padding: 20px 0; }
-
-        .header-content-flex { display: flex; align-items: center; justify-content: space-between; gap: 30px; }
-
-        .logo-container img { width: 80px; height: 80px; object-fit: contain; }
-
-        .header-text h1 { font-size: 1.8rem; color: #1e5631; margin: 0 0 5px 0; font-weight: 700; }
-        .header-text h2 { font-size: 1.3rem; color: #2d5a3d; margin: 0 0 5px 0; font-weight: 600; }
-        .header-tagline { font-size: 0.95rem; color: #666; font-style: italic; }
-
-        .auth-buttons-header { display: flex; gap: 12px; }
-
-        .btn-signin, .btn-signup {
-            padding: 12px 28px; border-radius: 5px; text-decoration: none;
-            font-weight: 600; transition: all 0.3s ease; font-size: 0.95rem; border: 2px solid #1e5631;
-        }
-
-        .btn-signin { background: white; color: #1e5631; }
-        .btn-signin:hover { background: #1e5631; color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(30, 86, 49, 0.3); }
-        .btn-signup { background: #1e5631; color: white; }
-        .btn-signup:hover { background: #2d7a4a; transform: translateY(-2px); }
-
-        .navbar { background: #1e5631; box-shadow: 0 4px 12px rgba(0,0,0,0.15); position: sticky; top: 0; z-index: 1000; }
-
-        .nav-menu { list-style: none; display: flex; justify-content: space-around; margin: 0; padding: 0; }
-
-        .nav-menu a {
-            display: block; color: white; text-decoration: none; padding: 16px 12px;
-            text-align: center; transition: all 0.3s ease; font-weight: 500; border-bottom: 3px solid transparent;
-        }
-
-        .nav-menu a:hover, .nav-menu a.active { background: rgba(255,255,255,0.12); border-bottom-color: #ffd700; }
-
-        .chat-wrapper { display: flex; justify-content: center; align-items: center; padding: 40px 20px; min-height: calc(100vh - 250px); }
-
-        .chat-container {
-            width: 100%; max-width: 700px; background: var(--white); border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 87, 63, 0.15); overflow: hidden;
-            display: flex; flex-direction: column; height: 75vh; max-height: 650px;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, var(--pakistan-green) 0%, var(--pakistan-dark-green) 100%);
-            color: var(--white); padding: 25px; text-align: center; box-shadow: var(--shadow);
-        }
-
-        .header-logo {
-            width: 50px; height: 50px; background: var(--white); border-radius: 50%;
-            margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: var(--shadow);
-        }
-
-        .chat-header h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
-        .chat-header p { font-size: 13px; opacity: 0.95; font-weight: 400; }
-
-        .chat-messages {
-            flex: 1; overflow-y: auto; padding: 20px; background: #fafbfc;
-            display: flex; flex-direction: column; gap: 15px;
-        }
-
-        .chat-messages::-webkit-scrollbar { width: 6px; }
-        .chat-messages::-webkit-scrollbar-track { background: #f1f1f1; }
-        .chat-messages::-webkit-scrollbar-thumb { background: var(--pakistan-light-green); border-radius: 10px; }
-        .chat-messages::-webkit-scrollbar-thumb:hover { background: var(--pakistan-green); }
-
-        .message { display: flex; align-items: flex-start; gap: 10px; animation: slideIn 0.3s ease; }
-
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .message.user { flex-direction: row-reverse; }
-
-        .message-avatar {
-            width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center;
-            justify-content: center; font-size: 18px; color: var(--white); flex-shrink: 0; font-weight: 600;
-        }
-
-        .message.user .message-avatar { background: linear-gradient(135deg, var(--pakistan-green) 0%, var(--pakistan-dark-green) 100%); }
-        .message.bot .message-avatar { background: linear-gradient(135deg, #00b56a 0%, #00a882 100%); }
-
-        .message-content {
-            max-width: 70%; padding: 12px 16px; border-radius: 12px;
-            word-wrap: break-word; line-height: 1.6; font-size: 15px;
-        }
-
-        .message.user .message-content {
-            background: linear-gradient(135deg, var(--pakistan-green) 0%, var(--pakistan-dark-green) 100%);
-            color: var(--white); border-bottom-right-radius: 4px;
-        }
-
-        .message.bot .message-content {
-            background: var(--white); color: var(--text-dark); border-bottom-left-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 1px solid #e8f5e8;
-        }
-
-        .typing-indicator { display: none; align-items: center; gap: 10px; padding: 0 20px; }
-        .typing-indicator.active { display: flex; }
-
-        .typing-dots {
-            display: flex; gap: 4px; padding: 12px 16px; background: var(--white);
-            border-radius: 12px; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        }
-
-        .typing-dots span { width: 8px; height: 8px; border-radius: 50%; background: var(--pakistan-light-green); animation: typing 1.4s infinite; }
-        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-        @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.7; }
-            30% { transform: translateY(-10px); opacity: 1; }
-        }
-
-        .chat-input-container { padding: 20px; background: var(--white); border-top: 1px solid var(--border-gray); }
-        .chat-input-wrapper { display: flex; gap: 10px; align-items: center; }
-
-        #msg {
-            flex: 1; padding: 12px 18px; border: 2px solid var(--border-gray);
-            border-radius: 25px; font-size: 15px; outline: none; transition: var(--transition); font-family: inherit;
-        }
-
-        #msg:focus { border-color: var(--pakistan-light-green); box-shadow: 0 0 0 3px rgba(0, 181, 106, 0.1); }
-        #msg:hover { border-color: var(--pakistan-light-green); }
-
-        #sendBtn {
-            width: 48px; height: 48px; border: none; border-radius: 50%;
-            background: linear-gradient(135deg, var(--pakistan-green) 0%, var(--pakistan-dark-green) 100%);
-            color: var(--white); cursor: pointer; display: flex; align-items: center;
-            justify-content: center; transition: var(--transition); flex-shrink: 0; box-shadow: var(--shadow);
-        }
-
-        #sendBtn:hover { transform: translateY(-2px); box-shadow: var(--shadow-hover); }
-        #sendBtn:active { transform: translateY(0); }
-        #sendBtn:disabled { opacity: 0.6; cursor: not-allowed; transform: scale(1); }
-
-        .empty-state { text-align: center; color: var(--text-light); padding: 50px 20px; }
-        .empty-state-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.7; }
-        .empty-state h4 { color: var(--pakistan-green); font-size: 20px; margin-bottom: 8px; font-weight: 600; }
-        .empty-state p { font-size: 14px; line-height: 1.5; }
-
-        .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; }
-
-        .quick-action-btn {
-            padding: 8px 16px; background: var(--white); border: 2px solid var(--pakistan-light-green);
-            color: var(--pakistan-green); border-radius: 20px; font-size: 13px;
-            cursor: pointer; transition: var(--transition); font-weight: 500;
-        }
-
-        .quick-action-btn:hover { background: var(--pakistan-green); color: var(--white); transform: translateY(-2px); box-shadow: var(--shadow); }
-
-        @media (max-width: 768px) {
-            .header-content-flex { flex-direction: column; text-align: center; }
-            .nav-menu { flex-direction: column; }
-            .auth-buttons-header { margin-top: 15px; }
-            .top-bar-content { flex-direction: column; gap: 10px; }
-            .contact-info span { display: block; margin: 5px 0; }
-            .chat-wrapper { padding: 20px 10px; }
-            .chat-container { height: calc(100vh - 300px); max-height: none; }
-            .message-content { max-width: 80%; font-size: 14px; }
-            .chat-header h3 { font-size: 19px; }
-            .chat-header p { font-size: 12px; }
-            .quick-actions { flex-direction: column; }
-            .quick-action-btn { width: 100%; }
-        }
-
-        @media (max-width: 480px) {
-            .chat-messages { padding: 15px; }
-            .chat-input-container { padding: 15px; }
-            #msg { padding: 10px 15px; font-size: 14px; }
-            #sendBtn { width: 44px; height: 44px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI help – PassQ</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passq.css') }}">
 </head>
 <body>
-    <!-- Top Header Bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="top-bar-content">
-                <div class="contact-info">
-                    <span data-en="📞 Helpline: 051-111-222-887" data-ur="📞 ہیلپ لائن: 051-111-222-887">📞 Helpline: 051-111-222-887</span>
-                    <span data-en="📧 info@dgip.gov.pk" data-ur="📧 info@dgip.gov.pk">📧 info@dgip.gov.pk</span>
-                </div>
-                <div class="language-selector">
-                    <button onclick="toggleLanguage()" id="langBtn">🌐 اردو</button>
-                </div>
-            </div>
-        </div>
+{% include "_icons.html" %}
+{% set active = 'help' %}{% include "_app_nav.html" %}
+
+<main class="page page-narrow">
+  <header class="page-head rise">
+    <h1><span class="en">AI help</span><span class="ur" lang="ur">اے آئی مدد</span></h1>
+    <p><span class="en">Ask about documents, office timings, fees or your token, in English or Urdu. To book, use <a href="{{ url_for('token_form') }}">Book a token</a> or <a href="{{ url_for('voice_agent') }}">Speak to book</a>.</span><span class="ur" lang="ur">دستاویزات، دفتری اوقات، فیس یا اپنے ٹوکن کے بارے میں انگریزی یا اردو میں پوچھیں۔ بُکنگ کے لیے <a href="{{ url_for('token_form') }}">ٹوکن بُک کریں</a> یا <a href="{{ url_for('voice_agent') }}">بول کر بُک کریں</a> استعمال کریں۔</span></p>
+  </header>
+
+  <section class="chat-shell rise" style="--d:1" aria-label="Chat with the PassQ assistant">
+    <div class="chat-top">
+      <span class="dot" aria-hidden="true"></span>
+      <div><b>PassQ <span class="en">assistant</span><span class="ur" lang="ur">اسسٹنٹ</span></b><br><span class="en">Answers can be wrong. For urgent help call 051-111-344-777.</span><span class="ur" lang="ur">جواب غلط بھی ہو سکتا ہے۔ فوری مدد کے لیے 051-111-344-777 پر کال کریں۔</span></div>
     </div>
 
-    <!-- Main Header -->
-    <div class="header-section">
-        <div class="container">
-            <div class="header-content-flex">
-                <div class="logo-container">
-                    <img src="static/images/passport.jpeg" alt="Pakistan Government Logo">
-                </div>
-                <div class="header-text">
-                    <h1 data-en="Government of Pakistan" data-ur="حکومت پاکستان">Government of Pakistan</h1>
-                    <h2 data-en="Directorate General of Immigration & Passports" data-ur="ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس">Directorate General of Immigration & Passports</h2>
-                    <p class="header-tagline" data-en="Ministry of Interior" data-ur="وزارت داخلہ">Ministry of Interior</p>
-                </div>
-                <div class="auth-buttons-header">
-                   <a href="{{ url_for('signin') }}" class="btn-signin" data-en="Sign In" data-ur="سائن ان">Sign In</a>
-                   <a href="{{ url_for('signup') }}" class="btn-signup" data-en="Register" data-ur="رجسٹر کریں">Register</a>
-                </div>
-            </div>
+    <div class="chat-messages" id="chatMessages" aria-live="polite">
+      <div class="chat-welcome" id="chatWelcome">
+        <svg class="i" aria-hidden="true"><use href="#i-chat"/></svg>
+        <h2><span class="en">How can I help?</span><span class="ur" lang="ur">آپ کو کس بارے میں مدد چاہیے؟</span></h2>
+        <p><span class="en">Pick a question or type your own.</span><span class="ur" lang="ur">کوئی سوال چنیں یا اپنا سوال لکھیں۔</span></p>
+        <div class="quick">
+          <button type="button" data-q-en="What are the office timings?" data-q-ur="دفتری اوقات کیا ہیں؟"><span class="en">Office timings</span><span class="ur" lang="ur">دفتری اوقات</span></button>
+          <button type="button" data-q-en="What is the passport fee?" data-q-ur="پاسپورٹ کی فیس کتنی ہے؟"><span class="en">Fees</span><span class="ur" lang="ur">فیس</span></button>
+          <button type="button" data-q-en="Which documents do I need?" data-q-ur="مجھے کون سی دستاویزات چاہئیں؟"><span class="en">Documents</span><span class="ur" lang="ur">دستاویزات</span></button>
+          <button type="button" data-q-en="When should I arrive with my token?" data-q-ur="ٹوکن کے ساتھ کب پہنچنا ہے؟"><span class="en">Arrival time</span><span class="ur" lang="ur">پہنچنے کا وقت</span></button>
         </div>
+      </div>
+      <div class="typing" id="typingIndicator" aria-label="Assistant is typing"><span></span><span></span><span></span></div>
     </div>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="container">
-            <ul class="nav-menu">
-                <li><a href="home" data-en="Home" data-ur="ہوم">Home</a></li>
-                <li><a href="#about" data-en="About Us" data-ur="ہمارے بارے میں">About Us</a></li>
-                <li><a href="#services" data-en="Services" data-ur="خدمات">Services</a></li>
-                <li><a href="#offices" data-en="Offices" data-ur="دفاتر">Offices</a></li>
-                <li><a href="#contact" data-en="Contact" data-ur="رابطہ">Contact</a></li>
-                <li><a href="#" class="active" data-en="AI Assistance" data-ur="اے آئی مدد">AI Assistance</a></li>
-            </ul>
-        </div>
-    </nav>
+    <form class="chat-input" id="chatForm" autocomplete="off">
+      <label class="sr-only" for="msg"><span class="en">Your question</span><span class="ur" lang="ur">آپ کا سوال</span></label>
+      <input type="text" id="msg" placeholder="Ask about passport services…" data-en="Ask about passport services…" data-ur="پاسپورٹ خدمات کے بارے میں پوچھیں…" maxlength="500">
+      <button type="submit" class="btn btn-primary" id="sendBtn"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg><span class="en">Send</span><span class="ur" lang="ur">بھیجیں</span></button>
+    </form>
+  </section>
+</main>
 
-    <!-- Chat Section -->
-    <div class="chat-wrapper">
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="header-logo">🛂</div>
-                <h3 data-en="Pakistan Passport Office" data-ur="پاکستان پاسپورٹ آفس">Pakistan Passport Office</h3>
-                <p data-en="AI Assistant - Get instant help with passport services" data-ur="اے آئی اسسٹنٹ - پاسپورٹ خدمات کے بارے میں فوری مدد حاصل کریں">AI Assistant - Get instant help with passport services</p>
-            </div>
+{% include "_app_footer.html" %}
+<script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+<script>
+(function () {
+  const chat = document.getElementById('chatMessages');
+  const welcome = document.getElementById('chatWelcome');
+  const typing = document.getElementById('typingIndicator');
+  const form = document.getElementById('chatForm');
+  const input = document.getElementById('msg');
+  const sendBtn = document.getElementById('sendBtn');
+  const history = [];              // recent turns, so follow-up questions have context
+  const T = (en, ur) => (window.passqLang && passqLang() === 'ur') ? ur : en;
 
-            <div class="chat-messages" id="chatMessages">
-                <div class="empty-state">
-                    <div class="empty-state-icon">🇵🇰</div>
-                    <h4 data-en="Welcome to Passport Assistance!" data-ur="پاسپورٹ مدد میں خوش آمدید!">Welcome to Passport Assistance!</h4>
-                    <p data-en="Ask me anything about passport services, fees, documents, or office timings" data-ur="پاسپورٹ خدمات، فیس، دستاویزات، یا دفتری اوقات کے بارے میں کچھ بھی پوچھیں">Ask me anything about passport services, fees, documents, or office timings</p>
-                    <div class="quick-actions">
-                        <button class="quick-action-btn" onclick="quickSend('Office timings')" data-en="Office Timings" data-ur="دفتری اوقات">Office Timings</button>
-                        <button class="quick-action-btn" onclick="quickSend('Passport fee')" data-en="Fees" data-ur="فیس">Fees</button>
-                        <button class="quick-action-btn" onclick="quickSend('Required documents')" data-en="Documents" data-ur="دستاویزات">Documents</button>
-                        <button class="quick-action-btn" onclick="quickSend('Processing time')" data-en="Processing Time" data-ur="پروسیسنگ کا وقت">Processing Time</button>
-                    </div>
-                </div>
-            </div>
+  function addMessage(text, isUser) {
+    if (welcome.isConnected) welcome.remove();
+    const div = document.createElement('div');
+    div.className = 'msg ' + (isUser ? 'user' : 'bot');
+    div.dir = 'auto';                 // Urdu replies read right-to-left, English left-to-right
+    div.textContent = text;
+    chat.insertBefore(div, typing);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function setTyping(on) { typing.classList.toggle('active', on); chat.scrollTop = chat.scrollHeight; }
 
-            <div class="typing-indicator" id="typingIndicator">
-                <div class="message-avatar">🤖</div>
-                <div class="typing-dots">
-                    <span></span><span></span><span></span>
-                </div>
-            </div>
+  async function sendMessage(text) {
+    const msg = (text || input.value).trim();
+    if (!msg) return;
+    input.disabled = true; sendBtn.disabled = true;
+    addMessage(msg, true);
+    input.value = '';
+    setTyping(true);
+    try {
+      const res = await fetch("{{ url_for('chats') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: msg, history: history.slice(-6) })
+      });
+      if (res.redirected || !(res.headers.get("content-type") || "").includes("json")) {
+        window.location = "{{ url_for('signin') }}";   // session expired
+        return;
+      }
+      const data = await res.json();
+      setTyping(false);
+      addMessage(data.reply, false);
+      if (res.ok) history.push({ role: "user", content: msg }, { role: "assistant", content: data.reply });
+    } catch (error) {
+      setTyping(false);
+      addMessage(T("Sorry, something went wrong. Please try again, or call the helpline on 051-111-344-777.",
+                   "معذرت، کچھ گڑبڑ ہو گئی۔ دوبارہ کوشش کریں یا ہیلپ لائن 051-111-344-777 پر کال کریں۔"), false);
+    } finally {
+      input.disabled = false; sendBtn.disabled = false; input.focus();
+    }
+  }
 
-            <div class="chat-input-container">
-                <div class="chat-input-wrapper">
-                    <input type="text" id="msg" placeholder="Ask about passport services..." autocomplete="off" data-en="Ask about passport services..." data-ur="پاسپورٹ خدمات کے بارے میں پوچھیں...">
-                    <button id="sendBtn" onclick="sendMessage()">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const chatMessages = document.getElementById('chatMessages');
-        const msgInput = document.getElementById('msg');
-        const sendBtn = document.getElementById('sendBtn');
-        const typingIndicator = document.getElementById('typingIndicator');
-
-        let isFirstMessage = true;
-        const history = [];          // recent turns, so follow-up questions have context
-
-        function addMessage(text, isUser) {
-            if (isFirstMessage) {
-                chatMessages.innerHTML = '';
-                isFirstMessage = false;
-            }
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
-            
-            const avatar = document.createElement('div');
-            avatar.className = 'message-avatar';
-            avatar.textContent = isUser ? '👤' : '🤖';
-            
-            const content = document.createElement('div');
-            content.className = 'message-content';
-            content.textContent = text;
-            
-            messageDiv.appendChild(avatar);
-            messageDiv.appendChild(content);
-            
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function setTyping(isTyping) {
-            if (isTyping) {
-                typingIndicator.classList.add('active');
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            } else {
-                typingIndicator.classList.remove('active');
-            }
-        }
-
-        async function sendMessage() {
-            const msg = msgInput.value.trim();
-            if (!msg) return;
-            
-            msgInput.disabled = true;
-            sendBtn.disabled = true;
-            
-            addMessage(msg, true);
-            msgInput.value = '';
-            setTyping(true);
-            
-            try {
-                const res = await fetch("/chats", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({message: msg, history: history.slice(-6)})
-                });
-
-                if (res.redirected || !(res.headers.get("content-type") || "").includes("json")) {
-                    window.location = "{{ url_for('signin') }}";   // session expired
-                    return;
-                }
-                const data = await res.json();
-                setTyping(false);
-                addMessage(data.reply, false);
-                if (res.ok) {
-                    history.push({role: "user", content: msg}, {role: "assistant", content: data.reply});
-                }
-                
-            } catch (error) {
-                setTyping(false);
-                addMessage("Sorry, I encountered an error. Please try again or contact helpline: 051-111-344-777", false);
-                console.error('Error:', error);
-            } finally {
-                msgInput.disabled = false;
-                sendBtn.disabled = false;
-                msgInput.focus();
-            }
-        }
-
-        function quickSend(message) {
-            msgInput.value = message;
-            sendMessage();
-        }
-
-        msgInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        msgInput.focus();
-    </script>
-
-    <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
+  form.addEventListener('submit', (e) => { e.preventDefault(); sendMessage(); });
+  document.querySelectorAll('.quick button').forEach((b) =>
+    b.addEventListener('click', () => sendMessage(T(b.dataset.qEn, b.dataset.qUr))));
+  input.focus({ preventScroll: true });
+})();
+</script>
 </body>
 </html>

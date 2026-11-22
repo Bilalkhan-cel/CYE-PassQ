@@ -3,27 +3,28 @@
    Clean, readable, citizen-friendly
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+/* Fonts and colours follow DESIGN.md (the PassQ system); only the sign-in pages still load this file. */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap');
 
 /* ── TOKENS ── */
 :root {
-  --green:       #1A5C35;
-  --green-dark:  #0F3D22;
-  --green-light: #2E7D4F;
-  --green-pale:  #EAF3ED;
-  --gold:        #C8973A;
-  --gold-light:  #E4BC72;
+  --green:       #0F5A3B;
+  --green-dark:  #0B4A30;
+  --green-light: #0B4A30;
+  --green-pale:  #DDEBDD;
+  --gold:        #865E1A;   /* stamp ink only */
+  --gold-light:  #8FE0B0;   /* mint: green's stand-in on dark grounds */
   --white:       #FFFFFF;
-  --cream:       #FAFAF7;
-  --gray-100:    #F2F4F2;
-  --gray-200:    #D8E2DC;
-  --gray-400:    #8FA898;
-  --text:        #1A2E22;
-  --text-mid:    #3A5245;
-  --text-muted:  #6B8070;
-  --error:       #C0392B;
-  --success:     #1A7A4A;
-  --radius:      6px;
+  --cream:       #F2F3EF;
+  --gray-100:    #E8EBE5;
+  --gray-200:    #C9D2CB;
+  --gray-400:    #9AA79F;
+  --text:        #14231B;
+  --text-mid:    #2C3D33;
+  --text-muted:  #56665C;
+  --error:       #A2352A;
+  --success:     #0F5A3B;
+  --radius:      10px;
   --shadow:      0 4px 20px rgba(0,0,0,.10);
   --shadow-lg:   0 12px 40px rgba(0,0,0,.16);
   --transition:  all .22s ease;
@@ -33,7 +34,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
-  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-family: 'Archivo', system-ui, sans-serif;
   color: var(--text);
   background: var(--cream);
   line-height: 1.6;
@@ -79,8 +80,10 @@ body.lang-ur span.ur            { display: inline !important; }
 body.lang-ur,
 body.lang-ur h1, body.lang-ur h2,
 body.lang-ur h3, body.lang-ur h4 {
-  font-family: 'Noto Nastaliq Urdu', 'Inter', sans-serif;
+  font-family: 'Noto Nastaliq Urdu', 'Archivo', sans-serif;
+  letter-spacing: 0 !important;
 }
+body.lang-ur { line-height: 2; }
 
 /* ══════════════════════════════════════════
    SHARED NAV
@@ -128,6 +131,9 @@ body.lang-ur h3, body.lang-ur h4 {
   font-size: 12px; transition: var(--transition); white-space: nowrap;
 }
 .lang-toggle-btn:hover { border-color: var(--gold-light); color: var(--gold-light); }
+.auth-box-top .lang-toggle-btn { border-color: var(--text); color: var(--text); font-size: 14px; padding: 5px 14px; border-radius: 999px; }
+.auth-box-top .lang-toggle-btn.to-ur { font-family: 'Noto Nastaliq Urdu', serif; padding: 1px 14px 6px; }
+.auth-box-top .lang-toggle-btn:hover { background: var(--text); color: var(--cream); border-color: var(--text); }
 .btn-nav-signin {
   border: 1.5px solid var(--gold); color: var(--gold); background: transparent;
   padding: 7px 20px; border-radius: var(--radius); font-size: 13px; font-weight: 600;
@@ -303,14 +309,19 @@ body.lang-ur h3, body.lang-ur h4 {
 .auth-page {
   min-height: 100vh;
   display: flex;
-  overflow: hidden;
+  align-items: flex-start;   /* the image panel never stretches with a long form */
+  overflow-x: clip;
   background: var(--white);
 }
 
-/* LEFT — image */
+/* LEFT — image: always exactly one screen tall and pinned while the form scrolls,
+   so sign in and register show the mosque identically */
 .auth-left {
   flex: 0 0 42%;
-  position: relative;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 .auth-left img.bg {
@@ -341,31 +352,33 @@ body.lang-ur h3, body.lang-ur h4 {
   position: absolute; top: 1.5rem; left: 1.5rem; z-index: 10;
   display: flex; align-items: center; gap: 10px;
   background: rgba(10,40,20,.75); backdrop-filter: blur(8px);
-  border: 1px solid rgba(200,151,58,.35);
+  border: 1px solid rgba(255,255,255,.22);
   border-radius: var(--radius); padding: 10px 14px;
   text-decoration: none;
 }
-.auth-badge img { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--gold); object-fit: cover; }
-.auth-badge strong { display: block; font-size: 11px; font-weight: 700; color: var(--gold-light); }
-.auth-badge span  { display: block; font-size: 10px; color: rgba(255,255,255,.55); margin-top: 1px; }
+.auth-badge img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+.auth-badge strong { display: block; font-size: 13px; font-weight: 800; font-stretch: 112%; color: #fff; }
+.auth-badge span  { display: block; font-size: 12px; color: rgba(255,255,255,.78); margin-top: 1px; }
 /* Caption bottom-left */
 .auth-caption {
   position: absolute; bottom: 2rem; left: 2rem; right: 4rem; z-index: 10;
 }
 .auth-caption h2 {
-  font-family: 'Playfair Display', serif;
-  font-size: clamp(1.5rem, 2.5vw, 2.1rem);
-  font-weight: 700; color: #fff; line-height: 1.25; margin-bottom: .5rem;
+  font-size: clamp(1.7rem, 2.8vw, 2.5rem);
+  font-weight: 780; font-stretch: 115%; letter-spacing: -.03em;
+  color: #fff; line-height: 1.05; margin-bottom: .7rem;
 }
-.auth-caption p { font-size: 13.5px; color: rgba(255,255,255,.68); font-weight: 300; line-height: 1.6; }
+body.lang-ur .auth-caption h2 { font-stretch: normal; line-height: 1.8; font-weight: 700; }
+.auth-caption p { font-size: 15px; color: rgba(255,255,255,.82); line-height: 1.6; }
 
 /* RIGHT — form */
 .auth-right {
   flex: 1;
+  align-self: stretch;
+  min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
   padding: 2rem 3rem 2rem 4rem;
   background: var(--white);
-  overflow-y: auto;
 }
 .auth-box {
   width: 100%; max-width: 400px;
@@ -379,9 +392,9 @@ body.lang-ur h3, body.lang-ur h4 {
   border-bottom: 1.5px solid var(--gray-200);
 }
 .auth-box-brand { display: flex; align-items: center; gap: 10px; }
-.auth-box-brand img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--green); object-fit: cover; }
-.auth-box-brand strong { display: block; font-size: 11.5px; font-weight: 700; color: var(--green-dark); letter-spacing: .05em; }
-.auth-box-brand span  { display: block; font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+.auth-box-brand img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+.auth-box-brand strong { display: block; font-size: 13px; font-weight: 750; font-stretch: 110%; color: var(--green); letter-spacing: .04em; }
+.auth-box-brand span  { display: block; font-size: 12.5px; color: var(--text-muted); margin-top: 1px; }
 
 /* Tabs */
 .auth-tabs {
@@ -390,52 +403,51 @@ body.lang-ur h3, body.lang-ur h4 {
 }
 .auth-tab {
   flex: 1; padding: 10px 0; border-radius: calc(var(--radius) - 2px);
-  font-size: 13.5px; font-weight: 600; color: var(--text-muted);
+  font-size: 15px; font-weight: 650; color: var(--text);
   transition: var(--transition); text-align: center; cursor: pointer; border: none;
   background: transparent;
 }
 .auth-tab.active {
-  background: var(--green); color: var(--gold-light);
+  background: var(--green); color: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,.12);
 }
 
 /* Welcome text */
 .auth-welcome { margin-bottom: 1.5rem; }
 .auth-welcome h2 {
-  font-size: 1.55rem; font-weight: 700; color: var(--text); margin-bottom: 4px;
-  font-family: 'Inter', sans-serif;
+  font-size: 1.9rem; font-weight: 780; font-stretch: 112%; letter-spacing: -.02em; color: var(--text); margin-bottom: 6px; line-height: 1.1;
 }
-.auth-welcome p { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
+.auth-welcome p { font-size: 15px; color: var(--text-muted); line-height: 1.55; }
+body.lang-ur .auth-welcome h2 { line-height: 1.9; font-size: 1.6rem; font-stretch: normal; }
 
 /* Form fields */
 .f-group { margin-bottom: 1.1rem; }
 .f-label {
-  display: block; font-size: 12px; font-weight: 600;
-  letter-spacing: .06em; text-transform: uppercase;
-  color: var(--text-mid); margin-bottom: 6px;
+  display: block; font-size: 14px; font-weight: 650;
+  color: var(--text); margin-bottom: 7px;
 }
 .f-input, .f-select {
   width: 100%; border: 1.5px solid var(--gray-200);
-  border-radius: var(--radius); padding: 11px 13px;
-  font-size: 14px; color: var(--text); background: var(--white);
+  border-radius: 12px; padding: 12px 14px;
+  font-size: 16px; color: var(--text); background: var(--white);
   font-family: inherit; outline: none; transition: var(--transition);
 }
-.f-input::placeholder { color: #aab; }
+.f-input::placeholder { color: #5E6D64; }
 .f-input:hover, .f-select:hover { border-color: var(--gray-400); }
 .f-input:focus, .f-select:focus {
-  border-color: var(--green); box-shadow: 0 0 0 3px rgba(26,92,53,.10);
+  border-color: var(--green); box-shadow: 0 0 0 4px rgba(15,90,59,.14);
 }
-.f-hint { display: block; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.f-hint { display: block; font-size: 13px; color: var(--text-muted); margin-top: 6px; }
 .f-submit {
   width: 100%; background: var(--green); color: #fff; border: none;
-  padding: 13px; border-radius: var(--radius); font-size: 14.5px; font-weight: 700;
-  letter-spacing: .04em; transition: var(--transition); margin-top: 6px; cursor: pointer;
+  padding: 14px; border-radius: 999px; font-size: 17px; font-weight: 650;
+  transition: var(--transition); margin-top: 8px; cursor: pointer;
 }
-.f-submit:hover { background: var(--gold); color: var(--green-dark); transform: translateY(-1px); }
+.f-submit:hover { background: var(--green-dark); transform: translateY(-1px); }
 
 .auth-footer { text-align: center; margin-top: 1.2rem; font-size: 13px; color: var(--text-muted); }
 .auth-footer a { color: var(--green); font-weight: 600; }
-.auth-footer a:hover { color: var(--gold); }
+.auth-footer a:hover { color: var(--green-dark); text-decoration: underline; }
 
 /* Flash messages */
 .flash { padding: 10px 14px; border-radius: var(--radius); margin-bottom: 14px; font-size: 13px; font-weight: 500; }
@@ -443,11 +455,42 @@ body.lang-ur h3, body.lang-ur h4 {
 .flash-success { background: #EEF8F2; color: var(--success); border-left: 3px solid var(--success); }
 .flash-info    { background: #EEF8F2; color: var(--success); border-left: 3px solid var(--success); }
 
-/* ── Page entrance animation ── */
-.auth-left  { animation: slideFromLeft  .5s cubic-bezier(.22,.68,0,1.15) both; }
-.auth-right { animation: slideFromRight .5s cubic-bezier(.22,.68,0,1.15) .06s both; }
-@keyframes slideFromLeft  { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:none} }
-@keyframes slideFromRight { from{opacity:0;transform:translateX(30px)}  to{opacity:1;transform:none} }
+/* ── Auth motion (signin, signup, forgot/reset/verify) ──
+   Image settles in with a slow zoom, then the form builds top to bottom.
+   Switching Sign In <-> Register keeps the image still and only swaps the form. */
+.auth-left img.bg { animation: authZoom 1.8s cubic-bezier(.16,1,.3,1) both; transform-origin: 50% 30%; }
+.auth-badge       { animation: authFade .8s ease .3s both; }
+.auth-caption     { animation: authRise 1s cubic-bezier(.16,1,.3,1) .4s both; }
+.auth-box > :not(form),
+.auth-box form > * { animation: authRise .75s cubic-bezier(.16,1,.3,1) both; animation-delay: calc(var(--i, 0) * 55ms + 120ms); }
+html.auth-swap .auth-left img.bg,
+html.auth-swap .auth-badge,
+html.auth-swap .auth-caption { animation: none; }
+.auth-box { transition: opacity .2s ease, transform .2s ease; }
+.auth-right.is-leaving .auth-box { opacity: 0; transform: translateY(-8px); }
+@keyframes authZoom { from { transform: scale(1.08); } to { transform: none; } }
+@keyframes authFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes authRise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.f-label { transition: color .25s ease; }
+.f-group:focus-within .f-label { color: var(--green); }
+.auth-tab:not(.active):hover { background: rgba(26,92,53,.08); color: var(--green); }
+
+/* Submit: shows it is working and blocks a second click */
+.f-submit { position: relative; }
+.f-submit.is-loading { pointer-events: none; color: transparent !important; background: var(--green) !important; transform: none; }
+.f-submit.is-loading::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px;
+  border: 2px solid rgba(255,255,255,.35); border-top-color: #fff; border-radius: 50%;
+  animation: authSpin .7s linear infinite;
+}
+@keyframes authSpin { to { transform: rotate(360deg); } }
+.auth-box .flash { animation: authRise .5s cubic-bezier(.16,1,.3,1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-page *, .auth-page *::after { animation: none !important; transition: none !important; }
+  .f-submit.is-loading::after { border-top-color: #fff; }
+}
 
 /* ══════════════════════════════════════════
    DASHBOARD
@@ -713,3 +756,11 @@ body.lang-ur h3, body.lang-ur h4 {
 .link-btn { background: none; border: 0; padding: 0; color: var(--green); font: inherit; font-weight: 600;
             cursor: pointer; text-decoration: underline; }
 .f-group a.forgot-link { display: block; text-align: right; margin-top: .4rem; color: var(--green); font-weight: 500; }
+
+/* Urdu (right-to-left): the diagonal cut sits on the other edge of the photo */
+[dir="rtl"] .auth-left::after { right: auto; left: -1px; clip-path: polygon(0 0, 0 100%, 100% 100%); }
+[dir="rtl"] .auth-badge { left: auto; right: 1.5rem; }
+[dir="rtl"] .auth-caption { left: 4rem; right: 2rem; }
+[dir="rtl"] .f-group a.forgot-link { text-align: left; }
+[dir="rtl"] .pw-wrap .f-input { padding-right: 14px; padding-left: 2.6rem; }
+[dir="rtl"] .pw-toggle { right: auto; left: .5rem; }

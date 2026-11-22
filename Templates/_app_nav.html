@@ -1,0 +1,36 @@
+{# Shared nav for signed-in pages. Set `active` before including: 'dashboard' | 'form' | 'voice' | 'help'. #}
+{% set _links = [
+  ('dashboard', url_for('dashboard'), 'i-grid', 'Dashboard', 'ڈیش بورڈ'),
+  ('form', url_for('token_form'), 'i-form', 'Book a token', 'ٹوکن بُک کریں'),
+  ('voice', url_for('voice_agent'), 'i-mic', 'Speak to book', 'بول کر بُک کریں'),
+  ('help', url_for('chats'), 'i-chat', 'AI help', 'اے آئی مدد'),
+] %}
+<nav class="app-nav" aria-label="Main">
+  <div class="app-nav-in">
+    <a class="brand" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP logo">
+      <span>
+        <span class="brand-name">PassQ</span>
+        <span class="brand-sub"><span class="en">by DGIP · Government of Pakistan</span><span class="ur" lang="ur">ڈی جی آئی پی کی سروس · حکومتِ پاکستان</span></span>
+      </span>
+    </a>
+    <div class="nav-links">
+      {% for key, href, icon, en, ur in _links %}
+      <a href="{{ href }}"{% if active == key %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#{{ icon }}"/></svg><span class="en">{{ en }}</span><span class="ur" lang="ur">{{ ur }}</span></a>
+      {% endfor %}
+    </div>
+    <div class="nav-right">
+      <button class="lang-switch to-ur" type="button" onclick="toggleLang()" aria-label="Switch language / زبان بدلیں">اردو</button>
+      <a class="nav-logout" href="{{ url_for('signout') }}"><svg class="i" aria-hidden="true"><use href="#i-logout"/></svg><span class="en">Log out</span><span class="ur" lang="ur">لاگ آؤٹ</span></a>
+      <details class="nav-menu">
+        <summary><svg class="i" aria-hidden="true"><use href="#i-menu"/></svg><span class="en">Menu</span><span class="ur" lang="ur">مینو</span></summary>
+        <div class="nav-menu-panel">
+          {% for key, href, icon, en, ur in _links %}
+          <a href="{{ href }}"{% if active == key %} aria-current="page"{% endif %}><svg class="i" aria-hidden="true"><use href="#{{ icon }}"/></svg><span class="en">{{ en }}</span><span class="ur" lang="ur">{{ ur }}</span></a>
+          {% endfor %}
+          <a class="logout" href="{{ url_for('signout') }}"><svg class="i" aria-hidden="true"><use href="#i-logout"/></svg><span class="en">Log out</span><span class="ur" lang="ur">لاگ آؤٹ</span></a>
+        </div>
+      </details>
+    </div>
+  </div>
+</nav>

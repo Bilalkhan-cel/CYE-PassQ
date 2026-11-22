@@ -2,321 +2,818 @@
 <html lang="ur" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<title>پاسپورٹ ٹوکن اسسٹنٹ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>آواز سے ٹوکن – PassQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: "Noto Nastaliq Urdu", Tahoma, sans-serif; background:#f4f5f7; margin:0; padding:0; }
-  .chat-wrap { max-width:560px; margin:24px auto; background:#fff; border-radius:12px;
-               box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column; height:80vh; }
-  .chat-log { flex:1; overflow-y:auto; padding:16px; }
-  .bubble { max-width:80%; margin:8px 0; padding:10px 14px; border-radius:14px; line-height:1.6; }
-  .agent  { background:#eef2ff; margin-right:auto; }
-  .user   { background:#1d4ed8; color:#fff; margin-left:auto; }
-  .status { text-align:center; font-size:13px; color:#888; padding:6px; }
-  .input-row { display:flex; border-top:1px solid #eee; padding:10px; gap:8px; }
-  .input-row input { flex:1; padding:10px 12px; border:1px solid #ddd; border-radius:8px; font-size:15px; }
-  .input-row button { padding:10px 18px; border:none; border-radius:8px; background:#1d4ed8; color:#fff; cursor:pointer; font-family:inherit; }
-  .input-row button:disabled { background:#aaa; cursor:not-allowed; }
+  /* Tokens match DESIGN.md (the PassQ system). */
+  :root {
+    --ground: #F2F3EF; --ground-2: #E8EBE5; --ink: #14231B; --muted: #56665C; --line: #C9D2CB;
+    --green: #0F5A3B; --green-deep: #0B4A30; --green-soft: #DDEBDD; --mint: #8FE0B0;
+    --press: #865E1A; --white: #FFFFFF; --danger: #A2352A; --danger-soft: #F6E4E1;
+    --ease: cubic-bezier(.16, 1, .3, 1);
+    --urdu: "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif;
+    --latin: "Archivo", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: var(--urdu); background: var(--ground); color: var(--ink); font-size: 18px; }
+  button, input { font-family: inherit; color: inherit; }
+  ::selection { background: var(--green); color: var(--white); }
+  :focus-visible { outline: 3px solid var(--green); outline-offset: 3px; border-radius: 8px; }
+  .latin, .tnum { font-family: var(--latin); font-variant-numeric: tabular-nums; }
+  .i { width: 1.25em; height: 1.25em; flex: none; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-  /* Mic button: outlined by default, filled red + pulsing while listening */
-  .mic-btn { background:#fff !important; border:1px solid #ddd; color:#1d4ed8; font-size:17px; padding:10px 14px !important; }
-  .mic-btn:disabled { color:#bbb; border-color:#eee; background:#fff !important; }
-  .mic-btn.mic-active { background:#dc2626 !important; border-color:#dc2626; color:#fff; animation: mic-pulse 1.2s infinite; }
-  @keyframes mic-pulse {
-    0%   { box-shadow: 0 0 0 0 rgba(220,38,38,.45); }
-    70%  { box-shadow: 0 0 0 9px rgba(220,38,38,0); }
-    100% { box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+  .app { max-width: 760px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+
+  /* Header: the PassQ nav voice, compact for a kiosk */
+  header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: rgba(242,243,239,.94); position: sticky; top: 0; z-index: 5; }
+  header img { width: 40px; height: 40px; border-radius: 50%; }
+  .h-title { flex: 1; min-width: 0; }
+  .h-title b { display: block; font-family: var(--latin); font-size: 20px; font-weight: 800; font-stretch: 112%; letter-spacing: -.02em; color: var(--green); line-height: 1.1; direction: ltr; text-align: right; }
+  .h-title span { display: block; font-size: 14px; color: var(--muted); line-height: 1.9; }
+  .h-title small { font-family: var(--latin); font-size: 12px; color: var(--muted); }
+  header a { color: var(--ink); text-decoration: none; font-size: 15px; border: 1.5px solid var(--ink); padding: 0 14px 6px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; transition: background .3s var(--ease), color .3s var(--ease); }
+  header a:hover { background: var(--ink); color: var(--ground); }
+  header a .i { width: 16px; height: 16px; margin-top: 5px; }
+
+  .progress { height: 4px; background: var(--ground-2); }
+  .progress > div { height: 100%; width: 0; background: var(--green); border-radius: 0 999px 999px 0; transition: width .8s var(--ease); }
+  .status { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--muted); font-size: 15px; padding: 6px 12px; min-height: 40px; line-height: 2; transition: color .3s; }
+  .status.error, .status .error { color: var(--danger); }
+  /* the agent's voice, drawn while it speaks */
+  .wave { display: none; align-items: center; gap: 3px; height: 18px; }
+  .wave span { width: 3px; height: 30%; border-radius: 3px; background: var(--green); }
+  body.speaking .wave { display: inline-flex; }
+  body.speaking .wave span { animation: wave 1s var(--ease) infinite; }
+  .wave span:nth-child(2) { animation-delay: .12s !important; } .wave span:nth-child(3) { animation-delay: .24s !important; }
+  .wave span:nth-child(4) { animation-delay: .36s !important; } .wave span:nth-child(5) { animation-delay: .48s !important; }
+  @keyframes wave { 0%, 100% { height: 25%; } 45% { height: 100%; } }
+
+  /* Start screen */
+  .start { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 18px 36px; text-align: center; gap: 16px; transition: opacity .3s var(--ease), transform .3s var(--ease); }
+  .start.leaving { opacity: 0; transform: translateY(-12px); }
+  .orb { position: relative; width: 116px; height: 116px; display: grid; place-items: center; margin-bottom: 6px; }
+  .orb::before, .orb::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2px solid var(--green); opacity: 0; }
+  .orb i { width: 84px; height: 84px; border-radius: 50%; background: var(--green); color: var(--white); display: grid; place-items: center; box-shadow: 0 18px 30px -16px rgba(15,90,59,.8); }
+  .orb .i { width: 36px; height: 36px; }
+  .start h2 { font-size: clamp(26px, 5.5vw, 34px); margin: 0; line-height: 1.9; font-weight: 700; text-wrap: balance; }
+  .start h2 em { font-style: normal; color: var(--green); }
+  .start p { margin: 0; color: var(--muted); line-height: 2.2; font-size: 18px; text-wrap: balance; }
+  .start .en-line { font-family: var(--latin); font-size: 15px; line-height: 1.5; direction: ltr; }
+  .ways { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .way { display: inline-flex; align-items: center; gap: 8px; background: var(--white); border: 1px solid var(--line); border-radius: 999px; padding: 2px 16px 8px; font-size: 16px; line-height: 2; }
+  .way .i { color: var(--green); width: 18px; height: 18px; margin-top: 6px; }
+  .big-btn { display: inline-flex; align-items: center; gap: 12px; background: var(--green); color: var(--white); border: 0; border-radius: 999px; font-size: 24px; padding: 8px 46px 18px; cursor: pointer; line-height: 2; margin-top: 6px; box-shadow: 0 14px 26px -14px rgba(15,90,59,.8); transition: background .3s var(--ease), transform .5s var(--ease); }
+  .big-btn:hover { background: var(--green-deep); transform: translateY(-2px); }
+  .big-btn:active { transform: scale(.97); }
+  .big-btn .i { margin-top: 10px; }
+  .note { font-size: 14px; color: var(--muted); line-height: 2; }
+
+  /* Conversation */
+  .chat { flex: 1; overflow-y: auto; padding: 12px 14px 4px; display: none; scroll-behavior: smooth; }
+  .chat.entering { animation: fadeIn .45s var(--ease) both; }
+  .bubble { max-width: 86%; margin: 8px 0; padding: 6px 18px 12px; border-radius: 20px; line-height: 2.1; white-space: pre-wrap; transform-origin: right bottom; }
+  .agent { background: var(--white); border: 1px solid var(--line); margin-left: auto; border-top-right-radius: 5px; }
+  .user  { background: var(--ink); color: var(--white); margin-right: auto; border-top-left-radius: 5px; transform-origin: left bottom; }
+  body.speaking .agent.live { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-soft); }
+
+  .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 10px 18px 14px; margin: 10px 0; }
+  .card h3 { margin: 0 0 6px; font-size: 18px; color: var(--green); line-height: 2; }
+  .row { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 4px 0; line-height: 2; }
+  .row:last-child { border-bottom: 0; }
+  .row span:first-child { color: var(--muted); }
+  .row span:last-child { font-family: var(--latin), var(--urdu); text-align: left; font-weight: 600; }
+  /* the token slip is the PassQ ticket */
+  .slip { position: relative; background: var(--green-soft); border: 0; padding: 14px 20px 18px; overflow: hidden; }
+  .slip h3 { border-bottom: 1px dashed rgba(15,90,59,.4); padding-bottom: 6px; }
+  .slip .token { text-align: center; margin: 8px 0 12px; }
+  .slip .token small { display: block; color: var(--muted); font-size: 14px; }
+  .slip .token b { font-family: var(--latin); font-size: 72px; font-weight: 800; font-stretch: 125%; color: var(--green); line-height: 1.05; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .slip .row { border-bottom-color: rgba(15,90,59,.18); }
+  .slip .stamp { position: absolute; left: 18px; top: 86px; border: 2.5px solid var(--press); color: var(--press); border-radius: 8px; text-align: center; padding: 2px 10px 6px; font-size: 14px; line-height: 1.6; transform: rotate(-8deg); mix-blend-mode: multiply; box-shadow: 0 0 0 2px var(--green-soft) inset, 0 0 0 3.5px var(--press) inset; }
+  .slip .stamp b { display: block; font-family: var(--latin); font-size: 22px; font-weight: 800; line-height: 1; }
+  .slip ul { margin: 6px 0 0; padding-right: 20px; line-height: 2.1; }
+  .slip .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+  /* Answer panel (choices, keypad, confirm) */
+  .panel { padding: 6px 14px 4px; display: none; }
+  .panel.show { display: block; animation: panelUp .5s var(--ease) both; }
+  .panel-title { font-size: 15px; color: var(--muted); margin: 2px 0 8px; line-height: 2; }
+  .choices { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; max-height: 38vh; overflow-y: auto; padding: 2px; }
+  .choices.wide { grid-template-columns: 1fr; }
+  .choice { background: var(--white); border: 1.5px solid var(--ink); color: var(--ink); border-radius: 14px; min-height: 58px; padding: 2px 12px 10px; font-size: 18px; cursor: pointer; line-height: 2; transition: background .25s var(--ease), color .25s var(--ease), transform .4s var(--ease), border-color .25s; }
+  .choice:hover:not(:disabled) { background: var(--green-soft); border-color: var(--green); color: var(--green); }
+  .choice:active:not(:disabled) { transform: scale(.97); }
+  .choice:disabled { opacity: .5; cursor: not-allowed; border-color: var(--line); color: var(--muted); }
+  .choice small { display: block; font-size: 13px; color: var(--press); line-height: 1.6; }
+  .choice.alt { border-style: dashed; }
+  .confirm { display: flex; gap: 10px; }
+  .confirm .choice { flex: 1; font-size: 20px; }
+  .confirm .yes { background: var(--green); border-color: var(--green); color: var(--white); }
+  .confirm .yes:hover:not(:disabled) { background: var(--green-deep); color: var(--white); }
+
+  .field { display: flex; gap: 8px; align-items: center; }
+  .field input { flex: 1; font-family: var(--latin); font-size: 28px; font-weight: 700; font-stretch: 112%; padding: 8px 14px; border: 2px solid var(--ink); border-radius: 14px; direction: ltr; text-align: center; letter-spacing: 2px; min-width: 0; background: var(--white); transition: border-color .25s, box-shadow .25s; }
+  .field input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 4px rgba(15,90,59,.15); }
+  .field input.email { font-size: 20px; letter-spacing: 0; font-weight: 500; }
+  .hint { font-size: 14px; color: var(--muted); margin-top: 6px; min-height: 22px; line-height: 2; }
+  .hint.error { color: var(--danger); animation: nudge .35s; }
+  @keyframes nudge { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+  .keypad { direction: ltr; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; max-width: 360px; margin-left: auto; margin-right: auto; }
+  .keypad button { font-family: var(--latin); font-size: 26px; font-weight: 600; min-height: 58px; border-radius: 14px; border: 1px solid var(--line); background: var(--white); cursor: pointer; transition: background .2s, transform .3s var(--ease); }
+  .keypad button:hover { background: var(--ground-2); }
+  .keypad button:active { transform: scale(.94); background: var(--green-soft); }
+  .keypad .ok { background: var(--green); color: var(--white); border: 0; }
+
+  /* Bottom bar */
+  .bar { display: none; border-top: 1px solid var(--line); background: var(--white); padding: 8px 12px 10px; }
+  .bar.entering { animation: panelUp .5s var(--ease) .1s both; }
+  .tools { display: flex; gap: 6px; justify-content: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .tool { display: inline-flex; align-items: center; gap: 6px; background: var(--ground); border: 1px solid var(--line); border-radius: 999px; padding: 0 14px 6px; font-size: 15px; cursor: pointer; line-height: 2; transition: background .25s, border-color .25s; }
+  .tool .i { width: 16px; height: 16px; margin-top: 6px; color: var(--green); }
+  .tool:hover { background: var(--green-soft); border-color: var(--green); }
+  .input-row { display: flex; gap: 8px; align-items: center; }
+  .input-row input { flex: 1; min-width: 0; font-size: 18px; padding: 4px 16px 10px; border: 1.5px solid var(--line); border-radius: 999px; line-height: 2; background: var(--ground); transition: border-color .25s, box-shadow .25s; }
+  .input-row input:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 4px rgba(15,90,59,.14); background: var(--white); }
+  .send { display: inline-flex; align-items: center; gap: 6px; background: var(--green); color: var(--white); border: 0; border-radius: 999px; padding: 2px 18px 10px; font-size: 17px; cursor: pointer; line-height: 2; transition: background .25s; }
+  .send:hover { background: var(--green-deep); }
+  .send .i { width: 17px; height: 17px; margin-top: 7px; }
+  /* mic: the ring grows with your voice while it listens */
+  .mic { --lvl: 0; position: relative; width: 64px; height: 64px; border-radius: 50%; border: 0; background: var(--green); color: var(--white); cursor: pointer; flex: none; display: grid; place-items: center; transition: background .3s var(--ease), transform .4s var(--ease); }
+  .mic .i { width: 28px; height: 28px; }
+  .mic::before { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid var(--danger); opacity: 0; transform: scale(calc(1 + var(--lvl) * .35)); transition: transform .08s linear, opacity .2s; }
+  .mic.on { background: var(--danger); }
+  .mic.on::before { opacity: .55; }
+  .mic.on.no-level::before { animation: listen 1.2s var(--ease) infinite; }
+  @keyframes listen { 0% { transform: scale(1); opacity: .55; } 100% { transform: scale(1.4); opacity: 0; } }
+  .mic.busy { background: var(--press); }
+  .mic.busy .i { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  body.waiting .bar input, body.waiting .bar .send, body.waiting .mic, body.waiting .panel button { opacity: .5; pointer-events: none; }
+  body.waiting .bar input, body.waiting .mic { transition: opacity .3s; }
+
+  /* Motion: one entrance per thing, nothing hidden without it */
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes panelUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+  @keyframes ring { from { transform: scale(1); opacity: .6; } to { transform: scale(1.6); opacity: 0; } }
+  @keyframes press { from { opacity: 0; transform: scale(1.9) rotate(4deg); } to { opacity: 1; transform: scale(1) rotate(-8deg); } }
+  @keyframes slipIn { from { opacity: 0; transform: translateY(24px) rotate(1.5deg); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: no-preference) {
+    .start > * { animation: rise .8s var(--ease) both; }
+    .start > :nth-child(2) { animation-delay: .08s; } .start > :nth-child(3) { animation-delay: .16s; } .start > :nth-child(4) { animation-delay: .24s; }
+    .start > :nth-child(5) { animation-delay: .32s; } .start > :nth-child(6) { animation-delay: .4s; } .start > :nth-child(7) { animation-delay: .48s; }
+    .orb::before { animation: ring 2.4s var(--ease) .9s 3; }
+    .orb::after { animation: ring 2.4s var(--ease) 1.5s 3; }
+    .bubble { animation: pop .45s var(--ease) both; }
+    .card { animation: rise .55s var(--ease) both; }
+    .slip { animation: slipIn .8s var(--ease) both; }
+    .slip .stamp { animation: press .34s cubic-bezier(.5,0,.75,0) 1s both; }
+    .choices .choice, .confirm .choice, .keypad button { animation: pop .4s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
   }
 
-  /* Clickable option buttons for choice-style questions (province, city,
-     district, domicile, branch) - rendered under the agent's bubble. */
-  .choice-row { display:flex; flex-wrap:wrap; gap:8px; max-width:85%; margin:0 0 10px auto; }
-  .choice-btn { padding:8px 14px; border-radius:18px; border:1px solid #1d4ed8; background:#fff;
-                color:#1d4ed8; font-size:14px; cursor:pointer; font-family:inherit; }
-  .choice-btn:hover:not(:disabled) { background:#eef2ff; }
-  .choice-btn:disabled { opacity:.45; cursor:not-allowed; }
-  .choice-btn.choice-btn-selected { background:#1d4ed8; color:#fff; opacity:1; }
+  @media (max-width: 480px) { body { font-size: 17px; } .choices { grid-template-columns: repeat(2, 1fr); } .slip .token b { font-size: 58px; } .h-title small { display: none; } }
+  @media print {
+    header, .progress, .status, .panel, .bar, .chat > :not(.slip), .slip .actions { display: none !important; }
+    body, .app, .chat { background: #fff; display: block !important; overflow: visible; }
+    .slip { animation: none !important; }
+  }
 </style>
 </head>
-<body>
+<body class="waiting">
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+  <symbol id="i-stop" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2"/></symbol>
+  <symbol id="i-busy" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/></symbol>
+  <symbol id="i-keys" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-width="2.4"/></symbol>
+  <symbol id="i-tap" viewBox="0 0 24 24"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.5a6 6 0 0 1-5-2.7L4 15.2a1.6 1.6 0 0 1 2.6-1.8L9 15.5"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.7-5.7L20 8.5M20 4v4.5h-4.5M20 12a8 8 0 0 1-13.7 5.7L4 15.5M4 20v-4.5h4.5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .9-1 1.7v.5M12 17h.01"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M3 3l11 11M3 3l7 18 4-7 7-4z"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24"><path d="M7 9V3h10v6M7 17H4v-8h16v8h-3"/><rect x="7" y="14" width="10" height="7"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4z"/><path d="M10 20v-5h4v5"/></symbol>
+</svg>
+<div class="app">
+  <header>
+    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
+    <div class="h-title"><b>PassQ</b><span>آواز سے پاسپورٹ ٹوکن <small>· Book by voice</small></span></div>
+    <a href="{{ url_for('home') }}"><svg class="i" aria-hidden="true"><use href="#i-home"/></svg>ہوم</a>
+  </header>
+  <div class="progress"><div id="progress"></div></div>
+  <div class="status" role="status" aria-live="polite"><span class="wave" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></span><span id="status"></span></div>
 
-<div class="chat-wrap">
-  <div class="status" id="status">رابطہ قائم ہو رہا ہے...</div>
-  <div class="chat-log" id="chatLog"></div>
-  <div class="input-row">
-    <button id="micBtn" class="mic-btn" title="بول کر جواب دیں" disabled>🎤</button>
-    <input id="textInput" type="text" placeholder="اپنا جواب یہاں لکھیں..." disabled>
-    <button id="sendBtn" disabled>بھیجیں</button>
-  </div>
+  <section class="start" id="startScreen">
+    <div class="orb" aria-hidden="true"><i><svg class="i"><use href="#i-mic"/></svg></i></div>
+    <h2>السلام علیکم! آئیے آپ کا <em>ٹوکن</em> بنائیں</h2>
+    <p>کسی اکاؤنٹ کی ضرورت نہیں۔ میں چند آسان سوال پوچھوں گی،<br>آپ جیسے چاہیں جواب دیں:</p>
+    <div class="ways" aria-label="جواب دینے کے طریقے">
+      <span class="way"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg>بول کر</span>
+      <span class="way"><svg class="i" aria-hidden="true"><use href="#i-keys"/></svg>لکھ کر</span>
+      <span class="way"><svg class="i" aria-hidden="true"><use href="#i-tap"/></svg>بٹن دبا کر</span>
+    </div>
+    <button class="big-btn" id="startBtn"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg>شروع کریں</button>
+    <p class="en-line">No account needed. Answer by speaking, typing or tapping.</p>
+    <div class="note">ٹوکن صبح 8 بجے سے شام 7 بجے تک جاری ہوتے ہیں۔</div>
+  </section>
+
+  <main class="chat" id="chat" aria-live="polite"></main>
+  <section class="panel" id="panel"></section>
+
+  <footer class="bar" id="bar">
+    <div class="tools">
+      <button class="tool" data-say="دوبارہ"><svg class="i" aria-hidden="true"><use href="#i-repeat"/></svg>دوبارہ سنائیں</button>
+      <button class="tool" data-say="واپس"><svg class="i" aria-hidden="true"><use href="#i-back"/></svg>پچھلا سوال</button>
+      <button class="tool" data-say="مدد"><svg class="i" aria-hidden="true"><use href="#i-help"/></svg>مدد</button>
+      <button class="tool" data-say="ختم"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>ختم کریں</button>
+    </div>
+    <div class="input-row">
+      <button class="mic" id="micBtn" aria-label="بول کر جواب دیں"><svg class="i" aria-hidden="true"><use href="#i-mic"/></svg></button>
+      <input id="textInput" type="text" placeholder="یہاں لکھیں یا مائیک دبا کر بولیں" autocomplete="off">
+      <button class="send" id="sendBtn"><svg class="i" aria-hidden="true"><use href="#i-send"/></svg>بھیجیں</button>
+    </div>
+  </footer>
 </div>
-
-<audio id="agentAudio" autoplay></audio>
+<audio id="agentAudio"></audio>
 
 <script>
-// =============================================================================
-// Injected server-side by Flask (see README for the route). Never hardcode
-// your real API key directly in a committed static .js file - render it
-// through a template like this instead, and treat this page itself as
-// sensitive (auth-gate it) since anyone who can view the page source can
-// see the key embedded here. See README "Security note" for hardening options.
-// =============================================================================
-const OPENHOME_API_KEY = "{{ openhome_api_key }}";
-const OPENHOME_AGENT_ID = "{{ openhome_agent_id }}";
-
-const WS_URL = `wss://app.openhome.com/websocket/voice-stream/${OPENHOME_API_KEY}/${OPENHOME_AGENT_ID}`;
-
-const statusEl = document.getElementById("status");
-const chatLog = document.getElementById("chatLog");
-const textInput = document.getElementById("textInput");
-const sendBtn = document.getElementById("sendBtn");
-const micBtn = document.getElementById("micBtn");
-const audioEl = document.getElementById("agentAudio");
-
-let ws = null;
-let mediaSource = null;
-let sourceBuffer = null;
-let audioQueue = [];
-let liveBubble = null; // the in-progress agent bubble, updated as tokens stream in
-
-function addBubble(role, text) {
-  const div = document.createElement("div");
-  div.className = "bubble " + (role === "user" ? "user" : "agent");
-  div.textContent = text;
-  chatLog.appendChild(div);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return div;
-}
-
-function setInputEnabled(enabled) {
-  textInput.disabled = !enabled;
-  sendBtn.disabled = !enabled;
-  micBtn.disabled = !enabled || !recognizer; // stays off if this browser has no mic support
-  if (!enabled && isListening) stopListening();
-  // Any option buttons still on screen (not yet picked) follow the same
-  // turn-taking rule as the text box and mic - live only when it's the
-  // citizen's turn to answer.
-  document.querySelectorAll(".choice-btn:not(.choice-btn-selected)")
-    .forEach(b => b.disabled = !enabled);
-}
-
-// ---- Audio playback: the agent's TTS arrives as base64 mp3 chunks over the
-// socket. MediaSource lets the <audio> element play them as they stream in. ----
-function initAudioPipeline() {
-  mediaSource = new MediaSource();
-  audioEl.src = URL.createObjectURL(mediaSource);
-  mediaSource.addEventListener("sourceopen", () => {
-    sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
-    sourceBuffer.mode = "sequence";
-    sourceBuffer.addEventListener("updateend", drainAudioQueue);
-  });
-}
-
-function drainAudioQueue() {
-  if (sourceBuffer && !sourceBuffer.updating && audioQueue.length > 0) {
-    sourceBuffer.appendBuffer(audioQueue.shift());
-  }
-}
-
-function queueAudioChunk(base64Data) {
-  const binary = atob(base64Data);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  audioQueue.push(bytes);
-  drainAudioQueue();
-  audioEl.play().catch(() => {}); // browsers may block autoplay until first user click
-}
-
-// ---------------------------------------------------------------------------
-// Clickable options for choice-style questions (province / city / district /
-// domicile / branch). The Ability (generate_passport_token_2.py) doesn't
-// send any special "these are buttons" message - it just speaks/writes a
-// plain sentence like:
-//   "شہر کونسا ہے؟ براہ کرم صرف نمبر بول کر بتائیں: نمبر 1 راولپنڈی، نمبر 2 لاہور۔"
-// (see ask_choice() in the Ability). We parse that same sentence for the
-// repeating "نمبر <N> <option>" pattern and turn it into tappable buttons,
-// so nothing about the Ability's protocol needs to change. Clicking a
-// button sends the option's number back as a "transcribed" message, exactly
-// like a typed or spoken number would - ask_choice() picks it up immediately.
-// ---------------------------------------------------------------------------
-function renderChoicesIfAny(bubbleDiv, text) {
-  const re = /نمبر\s*(\d+)\s+([^،۔]+)/g;
-  const options = [];
-  let m;
-  while ((m = re.exec(text)) !== null) {
-    options.push({ num: m[1], label: m[2].trim() });
-  }
-  if (options.length < 2) return; // not a numbered-choice message, leave as plain text
-
-  const row = document.createElement("div");
-  row.className = "choice-row";
-  options.forEach(opt => {
-    const btn = document.createElement("button");
-    btn.className = "choice-btn";
-    btn.textContent = opt.label;
-    btn.disabled = textInput.disabled; // match current turn-taking state
-    btn.addEventListener("click", () => sendChoice(row, btn, opt));
-    row.appendChild(btn);
-  });
-  bubbleDiv.insertAdjacentElement("afterend", row);
-  chatLog.scrollTop = chatLog.scrollHeight;
-}
-
-function sendChoice(row, btn, opt) {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  row.querySelectorAll("button").forEach(b => (b.disabled = true));
-  btn.classList.add("choice-btn-selected");
-
-  addBubble("user", opt.label);
-  ws.send(JSON.stringify({ type: "transcribed", data: opt.num }));
-  setInputEnabled(false); // wait for the agent's next question, same as typed/spoken answers
-}
-
-// ---------------------------------------------------------------------------
-// Speech-to-text (browser microphone), as an alternative to typing - not a
-// replacement for it. Uses the browser's built-in Web Speech API, so no
-// audio is streamed anywhere new; recognition happens locally and only the
-// resulting text is sent, over the same "transcribed" message typing already
-// uses. Only Chromium-based browsers (Chrome/Edge) support this today; on
-// other browsers the mic button stays hidden and typing still works fine.
-// ---------------------------------------------------------------------------
-const SpeechRecognitionImpl = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognizer = null;
-let isListening = false;
-
-function initSpeechRecognition() {
-  if (!SpeechRecognitionImpl) {
-    micBtn.style.display = "none";
-    return;
-  }
-  recognizer = new SpeechRecognitionImpl();
-  recognizer.lang = "ur-PK"; // switch to "en-US" if your citizens will answer in English/roman-Urdu
-  recognizer.continuous = false;
-  recognizer.interimResults = true;
-
-  recognizer.onstart = () => {
-    isListening = true;
-    micBtn.classList.add("mic-active");
-    micBtn.textContent = "⏹";
-    statusEl.textContent = "سن رہا ہوں... بولیں";
+  window.PASSQ = {
+    sttServer: {{ 'true' if stt_server else 'false' }},
+    trigger: {{ trigger_phrase|tojson }}
   };
-
-  recognizer.onresult = (event) => {
-    let finalText = "";
-    let interimText = "";
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript;
-      if (event.results[i].isFinal) finalText += transcript;
-      else interimText += transcript;
-    }
-    textInput.value = finalText || interimText;
-    if (finalText.trim()) {
-      recognizer.stop();
-      sendTypedAnswer(); // submit the spoken answer exactly like a typed one
-    }
-  };
-
-  recognizer.onerror = () => {
-    statusEl.textContent = "آواز سمجھ نہیں آئی، دوبارہ کوشش کریں یا ٹائپ کر دیں۔";
-  };
-
-  recognizer.onend = () => {
-    isListening = false;
-    micBtn.classList.remove("mic-active");
-    micBtn.textContent = "🎤";
-  };
-}
-
-function stopListening() {
-  if (recognizer && isListening) recognizer.stop();
-}
-
-function toggleMic() {
-  if (!recognizer || micBtn.disabled) return;
-  if (isListening) {
-    recognizer.stop();
-  } else {
-    textInput.value = "";
-    recognizer.start();
-  }
-}
-
-// ---- WebSocket wiring ----
-function connect() {
-  ws = new WebSocket(WS_URL);
-
-  ws.onopen = () => {
-    statusEl.textContent = "منسلک ہو گیا - ایجنٹ کے بولنے کا انتظار کریں";
-    initAudioPipeline();
-  };
-
-  ws.onmessage = (event) => {
-    const msg = JSON.parse(event.data);
-
-    if (msg.type === "message" && msg.data.role === "assistant") {
-      // Streamed assistant text: msg.data.live=true while still streaming,
-      // final content arrives once live turns false.
-      if (!liveBubble) liveBubble = addBubble("agent", "");
-      liveBubble.textContent = msg.data.content;
-      chatLog.scrollTop = chatLog.scrollHeight;
-      if (!msg.data.live) {
-        renderChoicesIfAny(liveBubble, msg.data.content); // turn "نمبر 1 X، نمبر 2 Y" into buttons
-        liveBubble = null; // next assistant turn starts a fresh bubble
-      }
-    }
-
-    else if (msg.type === "audio") {
-      queueAudioChunk(msg.data);
-      // Per protocol, acknowledge receipt of each audio chunk.
-      ws.send(JSON.stringify({ type: "ack", data: "audio-received" }));
-    }
-
-    else if (msg.type === "text") {
-      // Playback lifecycle signals from the server.
-      if (msg.data === "audio-init") {
-        setInputEnabled(false); // agent is about to speak - wait for it to finish
-        ws.send(JSON.stringify({ type: "text", data: "bot-speaking" }));
-      } else if (msg.data === "audio-end") {
-        setInputEnabled(true); // agent finished - now it's the user's turn to type, tap, or speak
-        statusEl.textContent = "آپ کی باری - لکھیں، بولیں یا کسی آپشن پر کلک کریں";
-        textInput.focus();
-        ws.send(JSON.stringify({ type: "text", data: "bot-speak-end" }));
-      }
-    }
-  };
-
-  ws.onclose = () => {
-    statusEl.textContent = "رابطہ منقطع ہو گیا";
-    setInputEnabled(false);
-  };
-
-  ws.onerror = () => {
-    statusEl.textContent = "رابطے میں خرابی - براہ کرم صفحہ دوبارہ لوڈ کریں";
-  };
-}
-
-function sendTypedAnswer() {
-  const text = textInput.value.trim();
-  if (!text || !ws || ws.readyState !== WebSocket.OPEN) return;
-
-  // This is the key line: instead of streaming microphone audio, we send the
-  // user's typed (or speech-recognized) answer as if it were already-
-  // transcribed speech. The Ability on the other end (generate_passport_token_2.py)
-  // reads this via `await capability_worker.user_response()` exactly the
-  // same way it would read a spoken answer - no ability code changes needed.
-  ws.send(JSON.stringify({ type: "transcribed", data: text }));
-
-  addBubble("user", text);
-  textInput.value = "";
-  setInputEnabled(false); // wait for the agent's next spoken question
-}
-
-sendBtn.addEventListener("click", sendTypedAnswer);
-micBtn.addEventListener("click", toggleMic);
-textInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendTypedAnswer();
-});
-
-initSpeechRecognition();
-connect();
 </script>
+{% raw %}
+<script>
+(() => {
+  "use strict";
+  const UI_TYPE = "passq-ui";             // must match UI_EVENT in the OpenHome ability
+  const SKIP_EMAIL = "ای میل نہیں ہے";
+  const RESET_AFTER_END_MS = 90000;       // kiosk: clear the screen for the next person
+  const IDLE_RESET_MS = 4 * 60000;
+
+  const $ = (id) => document.getElementById(id);
+  const chat = $("chat"), panel = $("panel"), statusEl = $("status"), textInput = $("textInput");
+  const micBtn = $("micBtn"), sendBtn = $("sendBtn"), audioEl = $("agentAudio");
+  const reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ICON = (id) => `<svg class="i" aria-hidden="true"><use href="#${id}"/></svg>`;
+  function speaking(on) { document.body.classList.toggle("speaking", !!on); }
+
+  let ws = null, ended = false, reconnects = 0, myTurn = false, triggerSent = false;
+  let liveBubble = null, enableTimer = null, triggerTimer = null, lastActivity = Date.now();
+
+  // ---------------------------------------------------------------- helpers
+  function setStatus(text, isError) {
+    statusEl.textContent = text || "";
+    statusEl.classList.toggle("error", !!isError);
+  }
+  function scrollDown() { chat.scrollTop = chat.scrollHeight; }
+  function addBubble(role, text) {
+    const div = document.createElement("div");
+    div.className = "bubble " + (role === "user" ? "user" : "agent");
+    div.textContent = text;
+    chat.appendChild(div);
+    scrollDown();
+    return div;
+  }
+  function el(tag, cls, text) {
+    const n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+  function setTurn(mine) {
+    myTurn = mine;
+    clearTimeout(enableTimer);
+    if (mine) speaking(false);
+    document.body.classList.toggle("waiting", !mine);
+    if (mine) {
+      setStatus("آپ کی باری — بولیں، لکھیں یا بٹن دبائیں");
+      if (!panel.querySelector("input")) textInput.focus({ preventScroll: true });
+    } else if (isRecording()) {
+      stopRecording(true);
+    }
+  }
+  function isOpen() { return ws && ws.readyState === WebSocket.OPEN; }
+  function clearPanel() { panel.innerHTML = ""; panel.classList.remove("show"); }
+  function noteActivity() { lastActivity = Date.now(); }
+
+  // Every answer - typed, spoken, tapped - goes to the agent as transcribed text.
+  function answer(text, shown) {
+    text = (text || "").trim();
+    if (!text || !isOpen() || !myTurn) return false;
+    ws.send(JSON.stringify({ type: "transcribed", data: text }));
+    addBubble("user", shown || text);
+    textInput.value = "";
+    clearPanel();
+    setTurn(false);
+    setStatus("ایک لمحہ…");
+    noteActivity();
+    return true;
+  }
+
+  // ---------------------------------------------------------- UI from ability
+  function extractUi(msg) {
+    let d = null;
+    if (msg.type === UI_TYPE) d = msg.data;
+    else if (msg.data && typeof msg.data === "object" && msg.data.type === UI_TYPE) d = msg.data.data;
+    else if (msg.data && typeof msg.data === "object" && msg.data.passq) d = msg.data;
+    if (typeof d === "string") { try { d = JSON.parse(d); } catch (e) { return null; } }
+    return d && d.kind ? d : null;
+  }
+
+  function handleUi(ui) {
+    noteActivity();
+    if (ui.progress) $("progress").style.width = Math.min(100, Math.round(ui.progress * 100)) + "%";
+    switch (ui.kind) {
+      case "choices": renderChoices(ui); break;
+      case "confirm": renderConfirm(ui); break;
+      case "input":   renderInput(ui); break;
+      case "summary": renderSummary(ui); break;
+      case "slip":    renderSlip(ui); break;
+      case "clear":   clearPanel(); break;
+      case "progress": break;
+      case "end":     onEnded(); break;
+    }
+  }
+
+  function panelTitle(text) { if (text) panel.appendChild(el("div", "panel-title", text)); }
+
+  function renderChoices(ui) {
+    clearPanel();
+    panelTitle(ui.title);
+    const grid = el("div", "choices" + (ui.wide ? " wide" : ""));
+    (ui.options || []).forEach((opt, i) => {
+      const b = el("button", "choice" + (opt.alt ? " alt" : ""), opt.label);
+      b.style.setProperty("--i", Math.min(i, 12));
+      if (opt.note) b.appendChild(el("small", "", opt.note));
+      b.disabled = !!opt.disabled;
+      b.addEventListener("click", () => answer(opt.send || String(i + 1), opt.label));
+      grid.appendChild(b);
+    });
+    panel.appendChild(grid);
+    panel.classList.add("show");
+  }
+
+  function renderConfirm(ui) {
+    clearPanel();
+    panelTitle(ui.title);
+    const row = el("div", "confirm");
+    const yes = el("button", "choice yes", ui.yes || "جی ہاں، درست ہے");
+    const no = el("button", "choice", ui.no || "نہیں، تبدیل کرنا ہے");
+    yes.addEventListener("click", () => answer("جی ہاں", yes.textContent));
+    no.addEventListener("click", () => answer("نہیں", no.textContent));
+    row.append(yes, no);
+    panel.appendChild(row);
+    panel.classList.add("show");
+  }
+
+  function formatCnic(d) {
+    if (d.length <= 5) return d;
+    if (d.length <= 12) return d.slice(0, 5) + "-" + d.slice(5);
+    return d.slice(0, 5) + "-" + d.slice(5, 12) + "-" + d.slice(12, 13);
+  }
+
+  function renderInput(ui) {
+    clearPanel();
+    panelTitle(ui.title);
+    const mode = ui.mode || "text";
+    if (mode === "text") { textInput.focus({ preventScroll: true }); return; }
+
+    const field = el("div", "field");
+    const input = el("input", mode === "email" ? "email" : "");
+    const hint = el("div", "hint", ui.hint || "");
+    const ok = el("button", "send", "بھیجیں");
+    field.append(input, ok);
+    panel.append(field, hint);
+
+    if (mode === "email") {
+      input.type = "email"; input.inputMode = "email"; input.autocomplete = "email";
+      input.placeholder = "name@gmail.com";
+      const submit = () => {
+        const v = input.value.replace(/\s+/g, "").toLowerCase();
+        if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(v)) {
+          hint.textContent = "درست ای میل لکھیں، جیسے name@gmail.com"; hint.classList.add("error"); return;
+        }
+        answer(v);
+      };
+      ok.addEventListener("click", submit);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      const skip = el("button", "choice alt", "میرے پاس ای میل نہیں ہے");
+      skip.style.marginTop = "8px"; skip.style.width = "100%";
+      skip.addEventListener("click", () => answer(SKIP_EMAIL));
+      panel.appendChild(skip);
+    } else {   // cnic | number
+      const maxLen = mode === "cnic" ? 13 : (ui.max_len || 3);
+      let digits = "";
+      input.inputMode = "numeric"; input.autocomplete = "off";
+      input.placeholder = mode === "cnic" ? "12345-1234567-1" : "";
+      const show = () => { input.value = mode === "cnic" ? formatCnic(digits) : digits; hint.classList.remove("error"); hint.textContent = ui.hint || ""; };
+      const toWestern = (s) => s.replace(/[۰-۹]/g, (c) => "۰۱۲۳۴۵۶۷۸۹".indexOf(c)).replace(/[٠-٩]/g, (c) => "٠١٢٣٤٥٦٧٨٩".indexOf(c));
+      input.addEventListener("input", () => { digits = toWestern(input.value).replace(/\D/g, "").slice(0, maxLen); show(); });
+      const submit = () => {
+        if (mode === "cnic" && digits.length !== 13) {
+          hint.textContent = `شناختی کارڈ کے پورے 13 ہندسے لکھیں (ابھی ${digits.length} ہیں)`; hint.classList.add("error"); return;
+        }
+        if (!digits) { hint.textContent = "پہلے نمبر لکھیں"; hint.classList.add("error"); return; }
+        answer(digits, mode === "cnic" ? formatCnic(digits) : digits);
+      };
+      ok.addEventListener("click", submit);
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      const pad = el("div", "keypad");
+      ["1","2","3","4","5","6","7","8","9","⌫","0","✓"].forEach((k, ki) => {
+        const b = el("button", k === "✓" ? "ok" : "", k);
+        b.style.setProperty("--i", ki);
+        b.addEventListener("click", () => {
+          if (k === "⌫") digits = digits.slice(0, -1);
+          else if (k === "✓") return submit();
+          else if (digits.length < maxLen) digits += k;
+          show();
+        });
+        pad.appendChild(b);
+      });
+      panel.appendChild(pad);
+      show();
+    }
+    panel.classList.add("show");
+    setTimeout(() => input.focus({ preventScroll: true }), 50);
+  }
+
+  function renderSummary(ui) {
+    const card = el("div", "card");
+    card.appendChild(el("h3", "", ui.title || "آپ کی تفصیلات"));
+    (ui.rows || []).forEach(([k, v]) => {
+      const r = el("div", "row");
+      r.append(el("span", "", k), el("span", "", v || "—"));
+      card.appendChild(r);
+    });
+    chat.appendChild(card);
+    scrollDown();
+  }
+
+  function renderSlip(ui) {
+    const card = el("div", "card slip");
+    card.appendChild(el("h3", "", "آپ کا ٹوکن تیار ہے"));
+    const t = el("div", "token");
+    const num = el("b", "", String(ui.token));
+    t.append(el("small", "", "ٹوکن نمبر"), num);
+    card.appendChild(t);
+    const now = new Date();
+    let month = "";
+    try { month = new Intl.DateTimeFormat("ur-PK", { timeZone: "Asia/Karachi", month: "long" }).format(now); } catch (e) {}
+    let day = now.getDate();
+    try { day = Number(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Karachi", day: "numeric" }).format(now)); } catch (e) {}
+    const stamp = el("div", "stamp");
+    stamp.innerHTML = `جاری<b>${day}</b>${month}`;
+    card.appendChild(stamp);
+    const target = parseInt(ui.token, 10);
+    if (!reduceMotion && target > 0) {
+      num.textContent = "0";
+      const t0 = performance.now() + 300;
+      const step = (now2) => {
+        const p = Math.min(Math.max((now2 - t0) / 900, 0), 1);
+        num.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+      setTimeout(() => { num.textContent = String(target); }, 1500);   // the real number even if the tab is in the background
+    }
+    (ui.rows || []).forEach(([k, v]) => {
+      const r = el("div", "row");
+      r.append(el("span", "", k), el("span", "", v || "—"));
+      card.appendChild(r);
+    });
+    if (ui.bring && ui.bring.length) {
+      card.appendChild(el("div", "", "ساتھ لائیں:"));
+      const ul = el("ul");
+      ui.bring.forEach((x) => ul.appendChild(el("li", "", x)));
+      card.appendChild(ul);
+    }
+    const actions = el("div", "actions");
+    const print = el("button", "send");
+    print.innerHTML = ICON("i-print") + "پرنٹ کریں";
+    print.addEventListener("click", () => window.print());
+    actions.appendChild(print);
+    card.appendChild(actions);
+    chat.appendChild(card);
+    scrollDown();
+  }
+
+  function onEnded() {
+    ended = true;
+    clearPanel();
+    const row = el("div", "confirm");
+    const again = el("button", "choice yes", "نیا ٹوکن بنائیں");
+    again.addEventListener("click", () => location.reload());
+    row.appendChild(again);
+    panel.appendChild(row);
+    panel.classList.add("show");
+    document.body.classList.remove("waiting");
+    setStatus("شکریہ! یہ اسکرین تھوڑی دیر بعد خود صاف ہو جائے گی۔");
+    setTimeout(() => location.reload(), RESET_AFTER_END_MS);
+    setTimeout(() => { try { ws && ws.close(); } catch (e) {} }, 8000);
+  }
+
+  // ------------------------------------------------------------ audio output
+  // The agent's (female) OpenHome voice arrives as base64 mp3 chunks.
+  const MSE = window.ManagedMediaSource || window.MediaSource;
+  let mediaSource = null, sourceBuffer = null, audioQueue = [], blobParts = [];
+
+  function initAudio() {
+    audioQueue = []; blobParts = []; sourceBuffer = null;
+    if (!MSE || !MSE.isTypeSupported || !MSE.isTypeSupported("audio/mpeg")) { mediaSource = null; return; }
+    mediaSource = new MSE();
+    audioEl.disableRemotePlayback = true;
+    audioEl.src = URL.createObjectURL(mediaSource);
+    mediaSource.addEventListener("sourceopen", () => {
+      try {
+        sourceBuffer = mediaSource.addSourceBuffer("audio/mpeg");
+        sourceBuffer.mode = "sequence";
+        sourceBuffer.addEventListener("updateend", drainAudio);
+        sourceBuffer.addEventListener("error", () => initAudio());
+      } catch (e) { mediaSource = null; }
+    });
+  }
+  function drainAudio() {
+    if (!sourceBuffer || sourceBuffer.updating || !audioQueue.length) return;
+    try { sourceBuffer.appendBuffer(audioQueue.shift()); }
+    catch (e) { initAudio(); }               // a bad/lost chunk: start a clean pipeline
+  }
+  function queueAudio(b64) {
+    let bytes;
+    try {
+      const bin = atob(b64);
+      bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    } catch (e) { return; }                  // skip a corrupted chunk instead of breaking audio
+    if (mediaSource) { audioQueue.push(bytes); drainAudio(); audioEl.play().catch(() => {}); }
+    else blobParts.push(bytes);              // no MediaSource (older iPhones): play whole reply
+  }
+  function playBlobReply(done) {
+    if (!blobParts.length) return done();
+    const url = URL.createObjectURL(new Blob(blobParts, { type: "audio/mpeg" }));
+    blobParts = [];
+    const player = new Audio(url);
+    player.onended = player.onerror = () => { URL.revokeObjectURL(url); done(); };
+    player.play().catch(() => done());
+  }
+
+  // ------------------------------------------------------------- websocket
+  async function connect() {
+    setStatus("رابطہ قائم ہو رہا ہے…");
+    let url;
+    try {
+      const r = await fetch("/api/voice/session", { cache: "no-store" });
+      const j = await r.json();
+      if (!r.ok || !j.ws_url) {
+        setStatus(r.status === 429 ? "بہت زیادہ کوششیں ہو گئیں، تھوڑی دیر بعد دوبارہ آئیں۔"
+                                   : "سسٹم ابھی دستیاب نہیں، تھوڑی دیر بعد کوشش کریں۔", true);
+        return;
+      }
+      url = j.ws_url;
+    } catch (e) { return retry(); }
+
+    ws = new WebSocket(url);
+    triggerSent = false;
+
+    ws.onopen = () => {
+      reconnects = 0;
+      setStatus("منسلک ہو گیا — ذرا سنیے…");
+      initAudio();
+      triggerTimer = setTimeout(sendTrigger, 2500);  // start the token flow if the agent stays quiet
+    };
+
+    ws.onmessage = (event) => {
+      let msg;
+      try { msg = JSON.parse(event.data); } catch (e) { return; }
+      const ui = extractUi(msg);
+      if (ui) return handleUi(ui);
+
+      if (msg.type === "message" && msg.data && msg.data.role === "assistant") {
+        if (!liveBubble) { liveBubble = addBubble("agent", ""); liveBubble.classList.add("live"); }
+        liveBubble.textContent = msg.data.content || "";
+        scrollDown();
+        if (!msg.data.live) {
+          const text = liveBubble.textContent;
+          liveBubble.classList.remove("live");
+          liveBubble = null;
+          noteActivity();
+          // If the audio-end signal is lost, don't leave the citizen stuck.
+          clearTimeout(enableTimer);
+          enableTimer = setTimeout(() => { if (!ended) setTurn(true); }, Math.max(5000, text.length * 110));
+        }
+      } else if (msg.type === "audio") {
+        queueAudio(msg.data);
+        ws.send(JSON.stringify({ type: "ack", data: "audio-received" }));
+      } else if (msg.type === "text") {
+        if (msg.data === "audio-init") {
+          setTurn(false);
+          speaking(true);
+          setStatus("بات سنیے…");
+          ws.send(JSON.stringify({ type: "text", data: "bot-speaking" }));
+        } else if (msg.data === "audio-end") {
+          ws.send(JSON.stringify({ type: "text", data: "bot-speak-end" }));
+          speaking(false);
+          const finish = () => {
+            if (!triggerSent) { clearTimeout(triggerTimer); sendTrigger(); return; }
+            if (!ended) setTurn(true);
+          };
+          if (mediaSource) finish(); else playBlobReply(finish);
+        }
+      }
+    };
+
+    ws.onclose = () => {
+      clearTimeout(triggerTimer);
+      speaking(false);
+      setTurn(false);
+      if (!ended) retry();
+    };
+    ws.onerror = () => {};
+  }
+
+  function retry() {
+    if (ended) return;
+    if (reconnects >= 4) {
+      setStatus("رابطہ ٹوٹ گیا۔ براہ کرم صفحہ دوبارہ کھولیں۔", true);
+      return;
+    }
+    reconnects++;
+    setStatus("رابطہ ٹوٹ گیا، دوبارہ جوڑ رہی ہوں… (آپ کو شروع سے بتانا ہو گا)", true);
+    setTimeout(connect, 1500 * Math.pow(2, reconnects - 1));
+  }
+
+  // Opens the token ability (its trigger words in OpenHome must match this phrase).
+  function sendTrigger() {
+    if (triggerSent || !isOpen() || !window.PASSQ.trigger) return;
+    triggerSent = true;
+    ws.send(JSON.stringify({ type: "transcribed", data: window.PASSQ.trigger }));
+  }
+
+  // ------------------------------------------------------------ microphone
+  // Server speech-to-text (free Whisper on Groq) first; the browser's own
+  // recognizer (Chrome/Edge) if the server can't.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let useBrowserStt = !window.PASSQ.sttServer;
+  let recorder = null, stream = null, audioCtx = null, recording = false, heard = false, discard = false, recognizer = null;
+
+  function isRecording() { return recording; }
+  function micState(state) {
+    micBtn.classList.toggle("on", state === "on");
+    micBtn.classList.toggle("busy", state === "busy");
+    micBtn.innerHTML = ICON(state === "on" ? "i-stop" : (state === "busy" ? "i-busy" : "i-mic"));
+    if (state !== "on") { micBtn.classList.remove("no-level"); micBtn.style.setProperty("--lvl", 0); }
+  }
+
+  async function startRecording() {
+    if (!myTurn) return;
+    noteActivity();
+    if (useBrowserStt) return startBrowserStt();
+    if (!navigator.mediaDevices || !window.MediaRecorder) { useBrowserStt = true; return startBrowserStt(); }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch (e) {
+      setStatus("مائیک کی اجازت نہیں ملی۔ آپ لکھ کر بھی جواب دے سکتے ہیں۔", true);
+      return;
+    }
+    const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"]
+      .find((t) => MediaRecorder.isTypeSupported(t)) || "";
+    const chunks = [];
+    recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => onRecorded(new Blob(chunks, { type: recorder.mimeType || "audio/webm" }));
+    heard = false; discard = false; recording = true;
+    recorder.start(250);
+    micState("on");
+    setStatus("سن رہی ہوں… بولیے، رکیں گے تو خود بھیج دوں گی");
+
+    // Stop by itself after ~1.5 s of silence (or 15 s max).
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 1024;
+    audioCtx.createMediaStreamSource(stream).connect(analyser);
+    const buf = new Uint8Array(analyser.fftSize);
+    const started = performance.now();
+    let lastLoud = started;
+    const tick = () => {
+      if (!recording) return;
+      analyser.getByteTimeDomainData(buf);
+      let peak = 0;
+      for (let i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i] - 128));
+      const now = performance.now();
+      if (peak > 14) { heard = true; lastLoud = now; }
+      micBtn.style.setProperty("--lvl", Math.min(1, peak / 48).toFixed(2));
+      if ((heard && now - lastLoud > 1500) || now - started > 15000 || (!heard && now - started > 7000)) {
+        stopRecording(false);
+        return;
+      }
+      setTimeout(tick, 60);
+    };
+    tick();
+  }
+
+  function stopRecording(cancel) {
+    if (!recording) return;
+    recording = false;
+    discard = !!cancel;
+    try { recorder && recorder.state !== "inactive" && recorder.stop(); } catch (e) {}
+    try { stream && stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+    try { audioCtx && audioCtx.close(); } catch (e) {}
+    micState(cancel ? "idle" : "busy");
+  }
+
+  async function onRecorded(blob) {
+    if (discard) return micState("idle");
+    if (!heard || blob.size < 1500) {
+      micState("idle");
+      setStatus("آواز نہیں آئی۔ مائیک دبا کر دوبارہ بولیں یا لکھ دیں۔", true);
+      return;
+    }
+    setStatus("سمجھ رہی ہوں…");
+    const form = new FormData();
+    const ext = (blob.type.includes("mp4") ? "m4a" : blob.type.includes("ogg") ? "ogg" : "webm");
+    form.append("audio", blob, "speech." + ext);
+    try {
+      const r = await fetch("/api/stt", { method: "POST", body: form });
+      const j = await r.json().catch(() => ({}));
+      micState("idle");
+      if (r.status === 503 || r.status === 429) {
+        if (SR) {
+          useBrowserStt = true;
+          setStatus("براہ کرم ایک بار پھر مائیک دبا کر بولیں۔", true);
+        } else {
+          setStatus("آواز کی سہولت ابھی دستیاب نہیں، براہ کرم لکھ کر جواب دیں۔", true);
+        }
+        return;
+      }
+      const text = (j.text || "").trim();
+      if (!text) { setStatus("سمجھ نہیں آیا۔ ذرا صاف بولیں یا لکھ دیں۔", true); return; }
+      answer(text);
+    } catch (e) {
+      micState("idle");
+      setStatus("انٹرنیٹ کا مسئلہ ہے۔ دوبارہ بولیں یا لکھ دیں۔", true);
+    }
+  }
+
+  function startBrowserStt() {
+    if (!SR) { setStatus("اس براؤزر میں آواز کی سہولت نہیں، براہ کرم لکھ کر جواب دیں۔", true); return; }
+    recognizer = new SR();
+    recognizer.lang = "ur-PK";
+    recognizer.continuous = false;
+    recognizer.interimResults = true;
+    recognizer.onstart = () => { recording = true; micState("on"); micBtn.classList.add("no-level"); setStatus("سن رہی ہوں… بولیے"); };
+    recognizer.onresult = (event) => {
+      let finalText = "", interim = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript;
+        if (event.results[i].isFinal) finalText += t; else interim += t;
+      }
+      textInput.value = finalText || interim;
+      if (finalText.trim()) { recognizer.stop(); answer(finalText); }
+    };
+    recognizer.onerror = () => setStatus("آواز سمجھ نہیں آئی، دوبارہ کوشش کریں یا لکھ دیں۔", true);
+    recognizer.onend = () => { recording = false; micState("idle"); };
+    try { recognizer.start(); } catch (e) {}
+  }
+
+  micBtn.addEventListener("click", () => {
+    if (recording) { if (recognizer && useBrowserStt) recognizer.stop(); else stopRecording(false); }
+    else startRecording();
+  });
+
+  // ------------------------------------------------------------- wiring
+  sendBtn.addEventListener("click", () => answer(textInput.value));
+  textInput.addEventListener("keydown", (e) => { if (e.key === "Enter") answer(textInput.value); });
+  textInput.addEventListener("input", noteActivity);
+  document.querySelectorAll(".tool").forEach((b) =>
+    b.addEventListener("click", () => answer(b.dataset.say, b.textContent.trim())));
+
+  $("startBtn").addEventListener("click", () => {
+    audioEl.play().catch(() => {});        // unlock audio on this tap (browser autoplay rules)
+    connect();
+    const start = $("startScreen");
+    const show = () => {
+      start.style.display = "none";
+      chat.style.display = "block"; chat.classList.add("entering");
+      $("bar").style.display = "block"; $("bar").classList.add("entering");
+    };
+    if (reduceMotion) show();
+    else { start.classList.add("leaving"); setTimeout(show, 280); }
+  }, { once: true });
+
+  // Kiosk privacy: nobody's details stay on screen if they walk away.
+  setInterval(() => {
+    if (!ended && ws && Date.now() - lastActivity > IDLE_RESET_MS) location.reload();
+  }, 15000);
+})();
+</script>
+{% endraw %}
 </body>
 </html>

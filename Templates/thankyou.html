@@ -3,68 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Application Submitted – DGIP Pakistan</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<title>Your token is booked – PassQ</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passq.css') }}">
 </head>
 <body>
+{% include "_icons.html" %}
+{% set active = '' %}{% include "_app_nav.html" %}
+{% set win = token | arrival %}
+{% set months_ur = ['جنوری','فروری','مارچ','اپریل','مئی','جون','جولائی','اگست','ستمبر','اکتوبر','نومبر','دسمبر'] %}
 
-<nav class="site-nav">
-  <a href="{{ url_for('home') }}" class="nav-brand">
-    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
-    <div class="nav-brand-text">
-      <strong class="en">Government of Pakistan</strong>
-      <strong class="ur">حکومت پاکستان</strong>
-      <span class="en">DGIP — Ministry of Interior</span>
-      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
+<main class="page">
+  <div class="result">
+    <div>
+      <header class="page-head rise" style="margin-bottom:0">
+        <h1><span class="en">Your token is booked, {{ name }}.</span><span class="ur" lang="ur">{{ name }}، آپ کا ٹوکن بُک ہو گیا ہے۔</span></h1>
+        <p><span class="en">Arrive at the office within your window and show the receipt at the counter. A copy has been emailed to you.</span><span class="ur" lang="ur">اپنے وقت کے اندر دفتر پہنچیں اور کاؤنٹر پر رسید دکھائیں۔ اس کی کاپی آپ کو ای میل کر دی گئی ہے۔</span></p>
+        <div class="actions">
+          {% if (id|string).isdigit() %}
+          <a class="btn btn-primary" href="{{ url_for('view', id=id) }}"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg><span class="en">Download receipt (PDF)</span><span class="ur" lang="ur">رسید ڈاؤن لوڈ کریں (پی ڈی ایف)</span></a>
+          {% endif %}
+          <a class="btn btn-line" href="{{ url_for('dashboard') }}"><span class="en">Go to dashboard</span><span class="ur" lang="ur">ڈیش بورڈ پر جائیں</span></a>
+        </div>
+      </header>
+      <p class="result-note rise" style="--d:2"><svg class="i" aria-hidden="true"><use href="#i-info"/></svg>
+        <span><span class="en">Every 35 tokens share one 20-minute window, starting at 8:00 AM. Your token is also listed on your dashboard.</span><span class="ur" lang="ur">ہر 35 ٹوکن کو صبح 8 بجے سے 20 منٹ کا ایک وقت ملتا ہے۔ آپ کا ٹوکن آپ کے ڈیش بورڈ پر بھی موجود ہے۔</span></span>
+      </p>
     </div>
-  </a>
-  <div class="nav-links">
-    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
-    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
-  </div>
-  <div class="nav-right">
-    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
-  </div>
-</nav>
 
-<div class="ty-wrap">
-  <div class="ty-card">
-    <div class="ty-icon">✅</div>
-    <h1 class="en">Thank You, {{ name }}!</h1>
-    <h1 class="ur">شکریہ، {{ name }}!</h1>
-    <p class="en">Your passport application has been submitted successfully and is now being processed.</p>
-    <p class="ur">آپ کی پاسپورٹ درخواست کامیابی سے جمع ہو گئی ہے اور اب اس پر کارروائی ہو رہی ہے۔</p>
-    <div class="ty-summary">
-      <h3 class="en">Application Summary</h3>
-      <h3 class="ur">درخواست کا خلاصہ</h3>
-      <div class="ty-row">
-        <span class="en">Application ID</span><span class="ur">درخواست آئی ڈی</span>
-        <span>#{{ token }}</span>
-      </div>
-      <div class="ty-row">
-        <span class="en">Submission Date</span><span class="ur">تاریخ</span>
-        <span>{{ submission_date }}</span>
-      </div>
-      <div class="ty-row">
-        <span class="en">Status</span><span class="ur">حیثیت</span>
-        <span style="color:var(--success);font-weight:700;">
-          <span class="en">Submitted ✓</span><span class="ur">جمع ہو گئی ✓</span>
-        </span>
-      </div>
-    </div>
-    <p class="en" style="font-size:.9rem;">Please keep your Application ID for future reference. Your PDF receipt is ready below.</p>
-    <p class="ur" style="font-size:.9rem;">مستقبل کے لیے اپنی درخواست آئی ڈی محفوظ رکھیں۔ آپ کی پی ڈی ایف رسید تیار ہے۔</p>
-    <div class="ty-btns">
-      <a href="{{ url_for('view', id=id) }}" class="btn btn-primary en">📄 Download PDF Receipt</a>
-      <a href="{{ url_for('view', id=id) }}" class="btn btn-primary ur">📄 پی ڈی ایف ڈاؤنلوڈ</a>
-      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green en">📋 New Application</a>
-      <a href="{{ url_for('token_form') }}" class="btn btn-outline-green ur">📋 نئی درخواست</a>
+    <div class="ticket-hold rise" style="--d:1">
+      <article class="ticket ticket-print" aria-label="Your appointment ticket">
+        <div class="t-main">
+          <div class="t-route" style="--p:0"><span class="en">PASSQ · REGIONAL PASSPORT OFFICE</span><span class="ur" lang="ur">پاس کیو · علاقائی پاسپورٹ دفتر</span></div>
+          <span class="t-label" style="--p:1"><span class="en">Token</span><span class="ur" lang="ur">ٹوکن</span></span>
+          <div class="t-num tnum" style="--p:2">{{ '%04d' % (token|int) if (token|string).isdigit() else token }}</div>
+          {% if branch %}
+          <span class="t-label" style="--p:3"><span class="en">Office</span><span class="ur" lang="ur">دفتر</span></span>
+          <div class="t-office" style="--p:4"><span class="en">{{ branch }}</span><span class="ur" lang="ur">{{ branch | branch_ur }}</span></div>
+          {% endif %}
+          {% if win %}
+          <span class="t-label" style="--p:5"><span class="en">Arrive between</span><span class="ur" lang="ur">پہنچنے کا وقت</span></span>
+          <div class="t-time tnum" style="--p:6"><span class="en">{{ win.en }}</span><span class="ur" lang="ur" dir="rtl">{{ win.ur }}</span></div>
+          {% endif %}
+        </div>
+        <div class="t-side">
+          <span class="t-serial tnum" style="--p:2"><span class="en">Name</span><span class="ur" lang="ur">نام</span><br><span class="latin">{{ name }}</span></span>
+          <div class="stamp tnum" aria-label="Issued {{ pk_today.strftime('%d %B %Y') }}">
+            <small><span class="en">ISSUED</span><span class="ur" lang="ur">جاری</span></small>{{ pk_today.strftime('%d') }}<br><span class="en">{{ pk_today.strftime('%b').upper() }}</span><span class="ur" lang="ur">{{ months_ur[pk_today.month - 1] }}</span><br>{{ pk_today.year }}
+          </div>
+          <span></span>
+        </div>
+      </article>
     </div>
   </div>
-</div>
+</main>
 
+{% include "_app_footer.html" %}
 <script src="{{ url_for('static', filename='js/translate.js') }}"></script>
 </body>
 </html>

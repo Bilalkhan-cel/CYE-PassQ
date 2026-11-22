@@ -1,0 +1,15 @@
+# Never upload these to Vercel: local environment, secrets, local data.
+venv/
+.venv/
+__pycache__/
+*.pyc
+.env
+instance/
+*.db
+static/uploads/
+openhome_ability/
+test.py
+test_mail.py
+.claude/
+.impeccable/
+docs/

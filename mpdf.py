@@ -8,6 +8,10 @@ from io import BytesIO    # convet data into bytes so that it can be sent as fil
 from PIL import Image   # to handle image operations but we didnt use it
 from datetime import datetime # to get date and time
 from timeslot import time_slot
+import os
+from office import pk_now
+
+_IMAGES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static", "images")
 
 
 def makepdf(token, name, dob, age, CNIC,email, Address, City, Domicile, province, District, branch, *,    
@@ -20,11 +24,11 @@ def makepdf(token, name, dob, age, CNIC,email, Address, City, Domicile, province
     class PDF(FPDF):
         def header(self):
             try:
-                self.image('static/images/logo.jpeg', 10, 8, 33)
+                self.image(os.path.join(_IMAGES, 'logo.jpeg'), 10, 8, 33)
             except:
                 pass
             try:
-                self.image('static/images/logo 2.jpeg', 160, 8, 43)
+                self.image(os.path.join(_IMAGES, 'logo 2.jpeg'), 160, 8, 43)
             except:
                 pass
             self.set_font('Arial', 'BI', 20)
@@ -100,7 +104,7 @@ def makepdf(token, name, dob, age, CNIC,email, Address, City, Domicile, province
    
     details = [
         ("Applicant Name", name),
-        ("Date of Birth", dob),
+        ("Date of Birth", dob if dob else "Not provided"),
         ("Age", str(age)),
         ("CNIC", CNIC),
         ("Email", email),
@@ -109,7 +113,7 @@ def makepdf(token, name, dob, age, CNIC,email, Address, City, Domicile, province
         ("District", District),
         ("City", City),
         ("Domicile", Domicile),
-        ("Date of Issue", datetime.now().strftime('%Y-%m-%d')),
+        ("Date of Issue", pk_now().strftime('%Y-%m-%d')),
         ("Issued Time", times),
         ("Branch", branch)
     ]

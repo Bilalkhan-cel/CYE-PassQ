@@ -4,6 +4,7 @@ from flask import Flask, request, render_template, redirect, url_for,session,fla
 import uuid
 from flask_sqlalchemy import SQLAlchemy 
 from sqlalchemy import Column, Integer, String ,CheckConstraint
+from sqlalchemy.exc import IntegrityError
 from flask import send_file
 # from werkzeug.security import generate_password_hash, check_password_hash     #for security and for making password appear in hask not in simple words
 import io
@@ -12,10 +13,13 @@ from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import mpdf 
 import json
 from chat import get_response
-import pytesseract
-from office import check_location , reset, branch_has_space
+from office import check_location , reset, branch_has_space, sync_counter, pk_now, pk_today
+from voice_data import province_ur, place_ur, branch_ur
+import speech
+from timeslot import slot_window, time_slot
 from admin import check_passport_data
-from locations import LOCATIONS, PROVINCES, BRANCHES, ICT
+from locations import LOCATIONS, PROVINCES, BRANCHES, ICT, allowed_branch_provinces
+from collections import defaultdict, deque
 from functools import wraps
 from mail_sender import send_passport_email, send_otp_email
 from mail_config import mail
@@ -28,12 +32,17 @@ from dotenv import load_dotenv
 # (The chatbot settings are the exception: chat.py re-reads .env on every message.)
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
-import pandas as pd
 import re
 import os
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_UR")# fallback
+# The folder is "Templates" (capital T). Windows doesn't care, but Linux servers
+# such as Vercel are case-sensitive, so name it explicitly.
+app = Flask(__name__, template_folder="Templates")
+_db_url = os.getenv("SQLALCHEMY_DATABASE_UR") or ""
+if _db_url.startswith("postgres://"):           # Heroku/Supabase style; SQLAlchemy wants postgresql://
+    _db_url = "postgresql://" + _db_url[len("postgres://"):]
+app.config['SQLALCHEMY_DATABASE_URI'] = _db_url
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {"pool_pre_ping": True}   # hosted DBs drop idle connections
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -105,7 +114,12 @@ def _safe_next(url):
 # Identity documents are private: keep them OUT of /static (which anyone can
 # download) — instance/ is not served by Flask and is git-ignored.
 app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, "uploads")
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+try:
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+except OSError:
+    # Read-only filesystem (e.g. Vercel): only /tmp is writable there.
+    app.config['UPLOAD_FOLDER'] = os.path.join("/tmp", "uploads")
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 app.config['MAX_CONTENT_LENGTH'] = 40 * 1024 * 1024    # whole request (7 files x 5 MB + form)
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024                     # per file
 
@@ -151,7 +165,7 @@ class Passport(db.Model):
     token=db.Column(db.Integer,nullable=False,default=0)
     name=db.Column(db.String(100),nullable=False)
     age=db.Column(db.String(100),nullable=False)
-    dob=db.Column(db.Date,nullable=False)
+    dob=db.Column(db.Date,nullable=True)    # the voice agent does not ask for it (web form still does)
     email = db.Column(db.String(120), unique=False, nullable=False)
     phone = db.Column(db.String(20), nullable=True)   # +923XXXXXXXXX
     cnic=db.Column(db.String(50),nullable=False)
@@ -168,8 +182,12 @@ class Passport(db.Model):
 
     created_date=db.Column(db.DateTime, default=sec.utcnow)    # new column banaya hai jab koi new user aye ga from submit kry ga to us din ka date time automatically save ho jae ga database me 
 
-                                                                
-    __table_args__=(CheckConstraint('token<=800','token_max'),) 
+    # Day the token number belongs to. With the unique index below, the database
+    # itself refuses a second "token 5 at branch X today", even across servers.
+    token_day=db.Column(db.Date, nullable=True)
+
+    __table_args__=(CheckConstraint('token<=800','token_max'),
+                    db.Index('uq_passport_branch_day_token', 'branch', 'token_day', 'token', unique=True))
 # Add this route to your app.py file
 
 @app.route('/')
@@ -518,6 +536,35 @@ def _own_applications_filter():
     return db.or_(Passport.user_id == session.get("user_id"), legacy)
 
 
+def _clock(dt):
+    return dt.strftime("%I:%M").lstrip("0")
+
+
+@app.template_filter("arrival")
+def arrival_window(token):
+    """The 20-minute arrival window for a token, in English and Urdu (same rule as timeslot.py)."""
+    try:
+        start, end = slot_window(int(token))
+    except (TypeError, ValueError):
+        return None
+    ap = end.strftime("%p")
+    en = f"{_clock(start)} – {_clock(end)} {ap}" if start.strftime("%p") == ap \
+        else f"{_clock(start)} {start.strftime('%p')} – {_clock(end)} {ap}"
+    h = start.hour
+    part = "صبح" if h < 12 else ("دوپہر" if h < 15 else "سہ پہر")
+    return {"en": en, "ur": f"{part} {_clock(start)} – {_clock(end)}"}
+
+
+@app.template_filter("branch_ur")
+def _branch_ur_filter(name):
+    return branch_ur(name) if name else ""
+
+
+@app.context_processor
+def _pk_today():
+    return {"pk_today": pk_now().date()}
+
+
 @app.route("/dashboard", methods=['GET'])
 @login_required
 def dashboard():
@@ -538,7 +585,7 @@ CLOSING_TIME = "19:00"
 
 def office_closed_message():
     """Tokens are only issued before 7 PM."""
-    if datetime.now().time() >= datetime.strptime(CLOSING_TIME, '%H:%M').time():
+    if pk_now().time() >= datetime.strptime(CLOSING_TIME, '%H:%M').time():   # Pakistan time
         return "Tokens are issued only before 7:00 PM. Please apply again tomorrow."
     return None
 
@@ -601,19 +648,149 @@ def signout():
 def chbot():
     return render_template("chat.html")
 
-@app.route("/voice")
-@login_required
-def voice_agent():
-    # The browser talks to OpenHome directly, so it needs the key; only signed-in
-    # users get this page, and it must never be cached by the browser or a proxy.
-    resp = app.make_response(render_template(
-        "voice_agent.html",
-        openhome_api_key=os.getenv("OPENHOME_API_KEY"),
-        openhome_agent_id=os.getenv("OPENHOME_AGENT_ID"),
-    ))
-    resp.headers["Cache-Control"] = "no-store, private"
+# =====================================================================
+# PUBLIC VOICE AGENT (no login) - for citizens without an account.
+# Signed-in users can still use the web form; both share one token counter
+# (issue_branch_token) and the same validation rules.
+# =====================================================================
+_rate_hits = defaultdict(deque)
+
+
+def _client_ip():
+    return (request.headers.get("X-Forwarded-For") or request.remote_addr or "?").split(",")[0].strip()
+
+
+def _rate_limited(bucket, limit, window_seconds):
+    """Small in-memory limiter for the public voice endpoints (per server instance)."""
+    now = datetime.now().timestamp()
+    hits = _rate_hits[(bucket, _client_ip())]
+    while hits and hits[0] <= now - window_seconds:
+        hits.popleft()
+    if len(hits) >= limit:
+        return True
+    hits.append(now)
+    return False
+
+
+def _same_site():
+    """Browsers label cross-site requests; refuse them so other sites can't use our agent."""
+    return request.headers.get("Sec-Fetch-Site", "same-origin") in ("same-origin", "none")
+
+
+def _no_store(resp):
+    resp.headers["Cache-Control"] = "no-store"
     resp.headers["Referrer-Policy"] = "no-referrer"
     return resp
+
+
+@app.route("/voice")
+def voice_agent():
+    """The voice agent page - open to everyone, no sign-in."""
+    return _no_store(app.make_response(render_template(
+        "voice_agent.html", stt_server=speech.is_configured(),
+        # Sent once after connecting to open the token ability; must be one of
+        # the ability's trigger words in the OpenHome dashboard.
+        trigger_phrase=os.getenv("VOICE_TRIGGER_PHRASE", "پاسپورٹ ٹوکن"))))
+
+
+@app.route("/api/voice/session")
+def api_voice_session():
+    """Gives the page the OpenHome stream address. It is not written into the page
+    HTML, is rate-limited, same-site only and never cached. (The browser must
+    connect to OpenHome itself: Vercel functions cannot relay WebSockets.)"""
+    if not _same_site():
+        return jsonify({"success": False, "error": "forbidden"}), 403
+    if _rate_limited("session", 20, 3600):
+        return jsonify({"success": False, "error": "rate_limited"}), 429
+    key, agent = os.getenv("OPENHOME_API_KEY"), os.getenv("OPENHOME_AGENT_ID")
+    if not key or not agent:
+        return jsonify({"success": False, "error": "not_configured"}), 503
+    return _no_store(jsonify({
+        "success": True,
+        "ws_url": f"wss://app.openhome.com/websocket/voice-stream/{key}/{agent}",
+    }))
+
+
+@app.route("/api/voice/status")
+def api_voice_status():
+    """Is the office issuing tokens right now? (Checked before any questions.)"""
+    closed = office_closed_message()
+    return jsonify({"success": True, "open": not closed, "now": pk_now().strftime("%H:%M"),
+                    "closing": CLOSING_TIME, "message": closed or ""})
+
+
+@app.route("/api/voice/options")
+def api_voice_options():
+    """Option bubbles for the voice funnel: Urdu label shown, English value stored.
+
+    level=province | domicile
+    level=district & province=
+    level=city     & province= & district=
+    level=branch   & province= (& district= & city= to put nearby branches first)
+    Branches follow the web form's rule: own province or Islamabad.
+    """
+    level = request.args.get("level", "")
+    province = request.args.get("province", "")
+    district = request.args.get("district", "")
+    city = request.args.get("city", "")
+
+    if level in ("province", "domicile"):
+        options = [{"value": p, "label": province_ur(p)} for p in LOCATIONS]
+    elif level == "district":
+        if province not in LOCATIONS:
+            return jsonify({"success": False, "error": "unknown_province"}), 400
+        # Districts with a passport office first (where most people are), then the rest.
+        branch_cities = {b["city"] for b in BRANCHES.values() if b["province"] == province}
+        has_branch = lambda d: d in branch_cities or bool(branch_cities & set(LOCATIONS[province][d]))
+        options = [{"value": d, "label": place_ur(d)}
+                   for d in sorted(LOCATIONS[province], key=lambda d: (not has_branch(d), place_ur(d)))]
+    elif level == "city":
+        cities = LOCATIONS.get(province, {}).get(district)
+        if cities is None:
+            return jsonify({"success": False, "error": "unknown_district"}), 400
+        options = [{"value": c, "label": place_ur(c)} for c in cities]
+    elif level == "branch":
+        if province not in LOCATIONS:
+            return jsonify({"success": False, "error": "unknown_province"}), 400
+        get_token_number()
+        allowed = allowed_branch_provinces(province)
+        options = []
+        for name, info in BRANCHES.items():
+            if info["province"] not in allowed:
+                continue
+            options.append({
+                "value": name, "label": branch_ur(name),
+                "near": info["city"] in (city, district),
+                "own_province": info["province"] == province,
+                "full": not branch_has_space(name),
+            })
+        options.sort(key=lambda o: (not o["near"], not o["own_province"]))
+    else:
+        return jsonify({"success": False, "error": "unknown_level"}), 400
+    return jsonify({"success": True, "level": level, "options": options})
+
+
+@app.route("/api/stt", methods=["POST"])
+def api_stt():
+    """Urdu speech -> text (free Whisper large-v3 on Groq). 503 = use the browser's own."""
+    if not _same_site():
+        return jsonify({"success": False, "error": "forbidden"}), 403
+    if _rate_limited("stt", 60, 600):
+        return jsonify({"success": False, "error": "rate_limited"}), 429
+    upload = request.files.get("audio")
+    if not upload:
+        return jsonify({"success": False, "error": "no_audio"}), 400
+    audio = upload.read(speech.MAX_AUDIO_BYTES + 1)
+    if len(audio) > speech.MAX_AUDIO_BYTES:
+        return jsonify({"success": False, "error": "too_large"}), 413
+    if len(audio) < 1000:                       # a click, not speech
+        return jsonify({"success": True, "text": ""})
+    try:
+        text = speech.transcribe_urdu(audio, upload.filename or "speech.webm", upload.mimetype)
+    except speech.SpeechUnavailable as exc:
+        print("=== STT UNAVAILABLE ===", exc)
+        return jsonify({"success": False, "error": "stt_unavailable"}), 503
+    return jsonify({"success": True, "text": text})
 
 CHAT_LIMIT = 20                         # messages per user ...
 CHAT_WINDOW = timedelta(minutes=10)     # ... per 10 minutes (each message costs API credit)
@@ -639,16 +816,64 @@ def chats():
 
 
 def get_token_number():
-    today=date.today()         #aj ki date return kry ga
+    today=pk_today()           #aj ki date (Pakistan time; Vercel servers run on UTC)
 
 
     count_today=Passport.query.filter(
-        db.func.date(Passport.created_date)==today
+        Passport.token_day==today
     ).count()                                               
 
     if count_today ==0:
         reset()
-   
+
+
+def issue_branch_token(branch):
+    """The single token-number rule for BOTH the web form and the voice agent.
+
+    Takes the branch's next number from branches.json, then double-checks it
+    against today's saved applications for that branch, so a token number is
+    never handed out twice (e.g. when two server instances share one database).
+    Returns the number, None (unknown branch), 0 (closed) or >800 (full today).
+    """
+    get_token_number()
+    number = check_location(branch)
+    if not number or number > 800:
+        return number
+    issued_today = Passport.query.filter(
+        Passport.branch == branch,
+        Passport.token_day == pk_today(),
+    ).count()
+    if issued_today >= number:
+        number = issued_today + 1
+        if number > 800:
+            return 801
+        sync_counter(branch, number)
+    return number
+
+
+def save_with_unique_token(passport_app):
+    """Save a new application (web form and voice agent).
+
+    If another server gave out the same token number a moment earlier, the
+    unique index refuses this save; we take the next number and try again.
+    Returns the saved token number, or None if the branch filled up meanwhile.
+    """
+    passport_app.token_day = pk_today()
+    for _ in range(5):
+        db.session.add(passport_app)
+        try:
+            db.session.commit()
+            return passport_app.token
+        except IntegrityError as exc:
+            db.session.rollback()
+            if "uq_passport_branch_day_token" not in str(exc) and "token_day" not in str(exc):
+                raise                                   # some other problem: not ours to fix here
+            number = issue_branch_token(passport_app.branch)
+            if not number or number > 800:
+                return None
+            passport_app.token = number
+    raise RuntimeError("Could not find a free token number after 5 tries.")
+
     
 
 
@@ -717,8 +942,7 @@ def submit():
             reset()
             return render_form(request.form, form_error=closed, status=400)
 
-     get_token_number()
-     daily_token=check_location(clean['branch'])       # ye aj ki date ki base pe total token number count kry ga agr 800 log pury hogye to next user pe koi token generate ni hoga
+     daily_token=issue_branch_token(clean['branch'])   # ye aj ki date ki base pe total token number count kry ga agr 800 log pury hogye to next user pe koi token generate ni hoga (same rule as the voice agent)
 
      if daily_token is None or daily_token == 0 or daily_token > 800:
             return render_form(request.form,
@@ -751,8 +975,11 @@ def submit():
      province, city, district = clean['province'], clean['city'], clean['district']
      domicile, branch = clean['domicile'], clean['branch']
 
-     db.session.add(passport_app)
-     db.session.commit()
+     daily_token = save_with_unique_token(passport_app)   # same safe save as the voice agent
+     if daily_token is None:
+            return render_form(request.form,
+                               {"branch": "This branch has issued all of today's tokens. Please choose another branch."},
+                               status=400)
      pdf_data=mpdf.makepdf(
          daily_token, name, dob, age,
          cnic,email, address, city,
@@ -775,16 +1002,23 @@ def thank_you():
     name = request.args.get("name", "User",)
     token = request.args.get("token", "",)
     id = request.args.get("id", "",)
-    submission_date=date.today()
-    
-    return render_template("thankyou.html", name=name, token=token,id=id,submission_date=submission_date) 
+    submission_date=pk_today()
+    # The citizen's own application (never someone else's guessed id) supplies the
+    # office and arrival window shown on the ticket.
+    app_row = None
+    if "user_id" in session and str(id).isdigit():
+        app_row = Passport.query.filter(Passport.id == int(id), _own_applications_filter()).first()
+    if app_row is not None:
+        name, token = app_row.name, app_row.token
+    return render_template("thankyou.html", name=name, token=token,id=id,submission_date=submission_date,
+                           branch=app_row.branch if app_row else None)
 # passed id and token and name so that in thankyou.html we can use it to generate pdf and we can also see our name and token on screen
 @app.route("/error")
 def erro_r():
     name = request.args.get("name", "User",)
     error = request.args.get("error", "",)
     
-    submission_date=date.today()
+    submission_date=pk_today()
     
     return render_template("error.html", name=name, reason=error,submission_date=submission_date)    # passed id and token and name so that in thankyou.html we can use it to generate pdf and we can also see our name and token on screen
 
@@ -842,7 +1076,7 @@ def is_valid_email(value: str) -> bool:
 @app.route("/api/branches", methods=["GET"])
 def api_branches():
     try:
-        with open("branches.json", encoding="utf-8") as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "branches.json"), encoding="utf-8") as f:
             branches_data = json.load(f)
         return jsonify({"success": True, "branches": list(branches_data.keys())}), 200
     except Exception as e:
@@ -923,102 +1157,127 @@ def api_signin():
     }), 200
 
 
+# The voice agent does not collect these, so their "required" rules are skipped.
+VOICE_IGNORED_FIELDS = {"phone", "dob"}
+# Validator field names (web form inputs) -> the names the voice agent uses.
+VOICE_FIELD_NAMES = {"fcnic": "father_cnic", "mcnic": "mother_cnic", "terms": "consent"}
+VOICE_FIELDS = ("name", "age", "dob", "cnic", "email", "address", "province", "district",
+                "city", "domicile", "branch", "father_cnic", "mother_cnic", "consent")
+
+
+def _dashed_cnic(value):
+    """'3520212345673' or '35202-1234567-3' -> '35202-1234567-3'; anything else unchanged."""
+    digits = re.sub(r"\D", "", value or "")
+    if len(digits) == 13:
+        return f"{digits[:5]}-{digits[5:12]}-{digits[12]}"
+    return (value or "").strip()
+
+
+def _token_issued_today(cnic):
+    """Today's application for this CNIC (stored dashed by the form, digits by old API calls)."""
+    return Passport.query.filter(
+        db.or_(Passport.cnic == cnic, Passport.cnic == cnic.replace("-", "")),
+        Passport.token_day == pk_today(),
+    ).order_by(Passport.id.desc()).first()
+
+
+def _slot_info(token):
+    start, end = slot_window(token)
+    return {"arrival": time_slot(token), "date": pk_today().isoformat(),
+            "slot_start": start.strftime("%H:%M"), "slot_end": end.strftime("%H:%M")}
+
+
 @app.route("/api/submit", methods=["POST"])
 @require_api_auth
 def api_submit():
+    """Token request from the voice agent.
+
+    Same rules as the web form (/submit): office hours first, the same
+    field validation (admin.check_passport_data), and the same branch token
+    counter (issue_branch_token, max 800 a day). Skipped only because the voice
+    agent does not collect them: date of birth, phone number and document
+    uploads. Email is optional - people without one may skip it.
+    Extra rule for the public, no-login agent: one token per CNIC per day.
+    """
     data = request.get_json(silent=True) or {}
-    user = User.query.get(request.api_user_id)
+    user = db.session.get(User, request.api_user_id)
     if not user:
         return jsonify({"success": False, "error": "user_not_found",
                          "message": "Account no longer exists"}), 404
 
-    name = safe_str(data, "name", "")
-    age_raw = safe_str(data, "age", "")
-    dob_raw = safe_str(data, "dob", "")
-    cnic = safe_str(data, "cnic", "")
-    address = safe_str(data, "address", "")
-    province = safe_str(data, "province", "")
-    city = safe_str(data, "city", "")
-    district = safe_str(data, "district", "")
-    domicile = safe_str(data, "domicile", "")
-    branch = safe_str(data, "branch", "")
-    father_cnic = safe_str(data, "father_cnic", "")
-    mother_cnic = safe_str(data, "mother_cnic", "")
+    # 1) Office hours first, exactly like /submit.
+    closed = office_closed_message()
+    if closed:
+        reset()
+        return jsonify({"success": False, "error": "time_limit_reached", "message": closed}), 400
 
-    # CHANGED: the applicant's own email, as collected by the voice agent.
-    # The account that's logged in for /api/submit is now always the fixed
-    # kiosk/admin account (see the agent's auto-login), so we can't rely on
-    # `user.email` to reach the actual applicant anymore - that would just
-    # keep emailing the admin inbox for every single token. If the applicant
-    # didn't give a usable email, we fall back to the logged-in account's
-    # email so the message still goes somewhere and isn't silently dropped.
-    applicant_email_raw = safe_str(data, "email", "")
-    applicant_email = applicant_email_raw if is_valid_email(applicant_email_raw) else ""
-    recipient_email = applicant_email or user.email
+    # 2) Field rules - the same validator the web form uses.
+    fields = {key: safe_str(data, key, "") for key in VOICE_FIELDS}
+    for key in ("cnic", "father_cnic", "mother_cnic"):
+        fields[key] = _dashed_cnic(fields[key])
+    fields["country_code"] = "+92"
 
-    if not all([name, cnic, address]):
-        return jsonify({"success": False, "error": "missing_fields",
-                         "message": "Name, CNIC and Address are required"}), 400
+    result = check_passport_data(fields)
+    errors = {k: v for k, v in result["errors"].items() if k not in VOICE_IGNORED_FIELDS}
+    if fields["dob"] and "dob" in result["errors"]:
+        errors["dob"] = result["errors"]["dob"]           # a date that WAS sent must be valid
+    if not fields["email"]:
+        errors.pop("email", None)                         # optional for the voice agent
+    if errors:
+        return jsonify({"success": False, "error": "validation_failed",
+                         "fields": {VOICE_FIELD_NAMES.get(k, k): v for k, v in errors.items()},
+                         "message": result["reason"]}), 400
+    clean = result["cleaned"]
+    cnic = fields["cnic"]
 
-    if not age_raw.isdigit():
-        return jsonify({"success": False, "error": "invalid_age",
-                         "message": "Age must be a number"}), 400
-    age = int(age_raw)
+    # 3) One token per CNIC per day.
+    existing = _token_issued_today(cnic)
+    if existing:
+        return jsonify({"success": False, "error": "already_issued_today",
+                         "token": existing.token, "branch": existing.branch,
+                         "branch_ur": branch_ur(existing.branch),
+                         **_slot_info(existing.token),
+                         "message": "A token has already been issued today for this CNIC."}), 409
 
-    if age < 18 and not all([father_cnic, mother_cnic]):
-        return jsonify({"success": False, "error": "missing_guardian_cnic",
-                         "message": "Father CNIC and Mother CNIC are required for minors"}), 400
-
-    if not branch:
-        return jsonify({"success": False, "error": "missing_branch",
-                         "message": "Branch is required"}), 400
-
-    try:
-        dob = datetime.strptime(dob_raw, '%Y-%m-%d')
-    except ValueError:
-        return jsonify({"success": False, "error": "invalid_dob",
-                         "message": "Date of birth must be in YYYY-MM-DD format"}), 400
-
-    get_token_number()
-    daily_token = check_location(branch)
-
+    # 4) Branch token number - the exact counter the web form uses.
+    daily_token = issue_branch_token(clean["branch"])
     if daily_token is None:
         return jsonify({"success": False, "error": "invalid_branch",
-                         "message": f"Branch '{branch}' was not recognized. Please use the exact branch name."}), 400
-
+                         "message": "Branch was not recognized."}), 400
+    if daily_token == 0:
+        return jsonify({"success": False, "error": "time_limit_reached",
+                         "message": "Tokens are issued only before 7:00 PM."}), 400
     if daily_token > 800:
         return jsonify({"success": False, "error": "daily_limit_reached",
-                         "message": "Daily limit of 800 tokens reached. Try tomorrow."}), 400
+                         "message": "This branch has issued all of today's tokens."}), 400
 
-    if datetime.now().time() >= datetime.strptime('19:00', '%H:%M').time():
-        reset()
-        return jsonify({"success": False, "error": "time_limit_reached",
-                         "message": "Time limit reached for today. Please try again tomorrow."}), 400
-
+    recipient_email = clean["email"] or user.email
     passport_app = Passport(
-        user_id=user.id,
-        token=daily_token, name=name, age=age_raw, dob=dob, cnic=cnic,
-        address=address, province=province, city=city, district=district,
-        domicile=domicile, branch=branch,
-        email=recipient_email ,
-        father_cnic=father_cnic if father_cnic else None,
-        mother_cnic=mother_cnic if mother_cnic else None
+        user_id=user.id, token=daily_token, name=clean["name"], age=fields["age"],
+        dob=datetime.strptime(fields["dob"], "%Y-%m-%d") if fields["dob"] else None,
+        cnic=cnic, email=recipient_email, phone=None, address=clean["address"],
+        province=clean["province"], city=clean["city"], district=clean["district"],
+        domicile=clean["domicile"], branch=clean["branch"],
+        father_cnic=clean["father_cnic"], mother_cnic=clean["mother_cnic"],
     )
-
     try:
-        db.session.add(passport_app)
-        db.session.commit()
-    except Exception as e:
+        saved = save_with_unique_token(passport_app)
+    except Exception:
         db.session.rollback()
-        if "UNIQUE constraint" in str(e):
-            return jsonify({"success": False, "error": "cnic_exists",
-                             "message": "CNIC already exists in system"}), 400
+        print("=== VOICE TOKEN SAVE FAILED ===\n", _tb.format_exc())
         return jsonify({"success": False, "error": "server_error",
-                         "message": f"Error occurred: {str(e)}"}), 500
+                         "message": "Could not save the application."}), 500
+    if saved is None:
+        return jsonify({"success": False, "error": "daily_limit_reached",
+                         "message": "This branch has issued all of today's tokens."}), 400
 
-    # Generate the PDF - if this fails, the token still exists in DB,
-    # we just tell the caller the PDF/email step failed so they can retry /view/<id>
-     # ---- PDF generation ----
+    reply = {
+        "success": True, "token": passport_app.token, "id": passport_app.id,
+        "branch": passport_app.branch, "branch_ur": branch_ur(passport_app.branch),
+        "applicant_email": clean["email"] or None, **_slot_info(passport_app.token),
+    }
+
+    # PDF + email. If either fails the token still stands; we just say so.
     try:
         pdf_buffer = mpdf.makepdf(
             passport_app.token, passport_app.name, passport_app.dob, passport_app.age,
@@ -1029,43 +1288,24 @@ def api_submit():
             mother_cnic=passport_app.mother_cnic,
             parent_cnic=passport_app.father_cnic
         )
-    except Exception as e:
-        tb_text = _tb.format_exc()
-        print("=== PDF GENERATION FAILED ===\n", tb_text)
-        return jsonify({
-            "success": True, "token": passport_app.token, "id": passport_app.id,
-            "pdf_generated": False, "email_sent": False,
-            "message": f"Token generated but PDF creation failed: {str(e)}",
-            "debug_traceback": tb_text
-        }), 200
+    except Exception:
+        print("=== PDF GENERATION FAILED ===\n", _tb.format_exc())
+        return jsonify({**reply, "pdf_generated": False, "email_sent": False,
+                        "message": f"Token {passport_app.token} generated, but the PDF could not be created."}), 200
 
-    # ---- Email sending ----
     email_sent = False
-    email_error = None
     try:
         send_passport_email(
             passport_app.token, passport_app.name, passport_app.cnic,
             recipient_email, passport_app.branch, pdf_buffer
         )
         email_sent = True
-    except Exception as e:
-        email_error = _tb.format_exc()
-        print("=== EMAIL SEND FAILED ===\n", email_error)
+    except Exception:
+        print("=== EMAIL SEND FAILED ===\n", _tb.format_exc())
 
-    return jsonify({
-        "success": True,
-        "token": passport_app.token,
-        "id": passport_app.id,
-        "pdf_generated": True,
-        "email_sent": email_sent,
-        "email_error": email_error,
-        "recipient_email": recipient_email,
-        "message": (
-            f"Token {passport_app.token} generated. PDF sent to {recipient_email}."
-            if email_sent else
-            f"Token {passport_app.token} generated, but email could not be sent."
-        )
-    }), 200
+    return jsonify({**reply, "pdf_generated": True, "email_sent": email_sent,
+                    "message": (f"Token {passport_app.token} generated." if email_sent else
+                                f"Token {passport_app.token} generated, but email could not be sent.")}), 200
 
 
 def add_missing_columns():
@@ -1075,22 +1315,63 @@ def add_missing_columns():
     if "passport" not in inspector.get_table_names():
         return
     existing = {col["name"] for col in inspector.get_columns("passport")}
-    new_columns = {"phone": "VARCHAR(20)", "user_id": "INTEGER"}   # fixed names, no user input
+    new_columns = {"phone": "VARCHAR(20)", "user_id": "INTEGER", "token_day": "DATE"}   # fixed names, no user input
     for name, sql_type in new_columns.items():
         if name not in existing:
             with db.engine.begin() as conn:
                 conn.execute(db.text(f"ALTER TABLE passport ADD COLUMN {name} {sql_type}"))
             print(f"Added '{name}' column to passport table.")
+    # Old rows keep token_day empty; the database treats empty values as all
+    # different, so they never clash with the rule.
+    with db.engine.begin() as conn:
+        conn.execute(db.text("CREATE UNIQUE INDEX IF NOT EXISTS uq_passport_branch_day_token "
+                             "ON passport (branch, token_day, token)"))
+
+
+def make_dob_optional():
+    """Voice-agent tokens have no date of birth. Databases created before that
+    have passport.dob NOT NULL, which create_all() never relaxes, so relax it here.
+    Existing rows are copied over unchanged."""
+    inspector = db.inspect(db.engine)
+    if "passport" not in inspector.get_table_names():
+        return
+    old_cols = {c["name"]: c for c in inspector.get_columns("passport")}
+    if "dob" not in old_cols or old_cols["dob"].get("nullable", True):
+        return
+    with db.engine.begin() as conn:
+        if db.engine.dialect.name == "sqlite":
+            # SQLite cannot drop NOT NULL in place: rebuild the table from the model.
+            conn.execute(db.text("ALTER TABLE passport RENAME TO passport_old"))
+            old_indexes = conn.execute(db.text(
+                "SELECT name FROM sqlite_master WHERE type='index' "
+                "AND tbl_name='passport_old' AND sql IS NOT NULL")).scalars().all()
+            for index_name in old_indexes:                  # names come from sqlite itself
+                conn.execute(db.text(f'DROP INDEX "{index_name}"'))
+            Passport.__table__.create(conn)
+            shared = ", ".join(c.name for c in Passport.__table__.columns if c.name in old_cols)
+            conn.execute(db.text(f"INSERT INTO passport ({shared}) SELECT {shared} FROM passport_old"))
+            conn.execute(db.text("DROP TABLE passport_old"))
+        else:
+            conn.execute(db.text("ALTER TABLE passport ALTER COLUMN dob DROP NOT NULL"))
+    print("passport.dob is now optional (voice agent tokens have no date of birth).")
+
+
+def init_db():
+    """Runs on import too, because serverless hosts (Vercel) never run __main__."""
+    try:
+        with app.app_context():
+            db.create_all()
+            add_missing_columns()
+            make_dob_optional()
+    except Exception:
+        print("=== DATABASE INIT FAILED ===\n", _tb.format_exc())
+
+
+init_db()
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        add_missing_columns()
-
-        # Create tables for passport.d
-       
-    app.run(debug=True)
+    app.run()
 
     # if the code isnot working in your system please install the following packages in real.txt
     # donot run test.py it is for deleteing and creating database again and again bascicallt for testing purpose onlyfrom flask import Flask, request, render_template, redirect, url_for,session,flash,jsonify

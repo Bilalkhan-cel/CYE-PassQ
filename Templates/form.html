@@ -3,78 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Passport Application – DGIP Pakistan</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<title>Book a token – PassQ</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passq.css') }}">
 </head>
 <body>
 
-<nav class="site-nav">
-  <a href="{{ url_for('home') }}" class="nav-brand">
-    <img src="{{ url_for('static', filename='images/DGIP_logo.png') }}" alt="DGIP">
-    <div class="nav-brand-text">
-      <strong class="en">Government of Pakistan</strong>
-      <strong class="ur">حکومت پاکستان</strong>
-      <span class="en">DGIP — Ministry of Interior</span>
-      <span class="ur">ڈی جی آئی پی — وزارت داخلہ</span>
-    </div>
-  </a>
-  <div class="nav-links">
-    <a href="{{ url_for('home') }}" class="en">Home</a>
-    <a href="{{ url_for('home') }}" class="ur">ہوم</a>
-    <a href="{{ url_for('dashboard') }}" class="en">Dashboard</a>
-    <a href="{{ url_for('dashboard') }}" class="ur">ڈیش بورڈ</a>
-    <a href="{{ url_for('token_form') }}" class="active en">Application Form</a>
-    <a href="{{ url_for('token_form') }}" class="active ur">درخواست فارم</a>
-    <a href="{{ url_for('chats') }}" class="en">AI Assistance</a>
-    <a href="{{ url_for('chats') }}" class="ur">اے آئی مدد</a>
-  </div>
-  <div class="nav-right">
-    <button class="lang-toggle-btn" onclick="toggleLang()">🌐 اردو</button>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout en">Log Out</a>
-    <a href="{{ url_for('signout') }}" class="btn-nav-logout ur">لاگ آؤٹ</a>
-  </div>
-</nav>
+{% include "_icons.html" %}
+{% set active = 'form' %}{% include "_app_nav.html" %}
 
-<div class="form-page">
-<div class="form-page-wrap">
+<main class="page page-narrow">
 
-<div class="form-page-head">
-  <h2 class="en">📋 Passport Application Form</h2>
-  <h2 class="ur">📋 پاسپورٹ درخواست فارم</h2>
-  <p class="en">Fill all required fields carefully. Fields marked * are mandatory.</p>
-  <p class="ur">تمام ضروری خانے احتیاط سے بھریں۔ * والے خانے لازمی ہیں۔</p>
-</div>
+<header class="page-head rise">
+  <h1><span class="en">Book a token</span><span class="ur" lang="ur">ٹوکن بُک کریں</span></h1>
+  <p><span class="en">Fields marked <b class="required" aria-hidden="true">*</b> are required. When you submit, you get your token number, office and arrival time straight away.</span><span class="ur" lang="ur"><b class="required" aria-hidden="true">*</b> والے خانے لازمی ہیں۔ جمع کرتے ہی آپ کو ٹوکن نمبر، دفتر اور پہنچنے کا وقت مل جائے گا۔</span></p>
+  <p><a href="{{ url_for('voice_agent') }}"><span class="en">Prefer to speak? Book by voice instead.</span><span class="ur" lang="ur">بول کر بُک کرنا آسان ہے؟ آواز سے بُک کریں۔</span></a></p>
+</header>
 
-<form method="POST" enctype="multipart/form-data" class="passport-form" action="{{url_for('submit')}}" novalidate>
+<form method="POST" enctype="multipart/form-data" class="passport-form panel rise" style="--d:1" action="{{url_for('submit')}}" novalidate>
     <div id="formAlert" class="form-alert" role="alert" {% if not form_error %}hidden{% endif %}>{{ form_error or '' }}</div>
     {% if values %}
     <div class="form-alert form-alert-info" role="status">
-        Your details have been kept. Please fix the fields marked in red and attach your documents again
-        (browsers do not keep uploaded files).
+        <svg class="i" aria-hidden="true"><use href="#i-info"/></svg>
+        <span><span class="en">Your details have been kept. Fix the fields marked in red and attach your documents again (browsers do not keep uploaded files).</span><span class="ur" lang="ur">آپ کی تفصیل محفوظ ہے۔ سرخ نشان والے خانے درست کریں اور دستاویزات دوبارہ لگائیں (براؤزر اپ لوڈ کی گئی فائلیں محفوظ نہیں رکھتا)۔</span></span>
     </div>
     {% endif %}
         <div class="form-section">
             <div class="section-header">
-                <h3 data-en="Personal Information" data-ur="ذاتی معلومات"><i class="icon-person"></i>Personal Information</h3>
+                <h2 data-en="Personal Information" data-ur="ذاتی معلومات"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg>Personal Information</h2>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label for="name" data-en="Full Name" data-ur="پورا نام">Full Name <span class="required">*</span></label>
-                    <input type="text" id="name" name="name" placeholder="Enter your complete name" maxlength="100"
+                    <input type="text" id="name" name="name" placeholder="Enter your complete name" data-en="Enter your complete name" data-ur="اپنا پورا نام انگریزی میں لکھیں" maxlength="100"
                            pattern="[A-Za-z][A-Za-z .'\-]*" title="English letters, spaces, dots, hyphens or apostrophes only" required>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                   <label for="age" data-en="Age" data-ur="عمر">Age <span class="required">*</span></label>
-                    <input type="text" id="age" name="age" placeholder="Filled from date of birth" inputmode="numeric"
-                           pattern="[0-9]{1,3}" readonly required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label for="dob" data-en="Date of Birth" data-ur="تاریخ پیدائش">Date of Birth <span class="required">*</span></label>
                     <input type="date" id="dob" name="dob" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                   <label for="age" data-en="Age" data-ur="عمر">Age <span class="required">*</span></label>
+                    <input type="text" id="age" name="age" placeholder="Filled from date of birth" data-en="Filled from date of birth" data-ur="تاریخ پیدائش سے خود بھر جائے گا" inputmode="numeric"
+                           pattern="[0-9]{1,3}" readonly required>
                 </div>
             </div>
             <div class="form-row">
@@ -108,12 +82,12 @@
 
         <div class="form-section">
             <div class="section-header">
-                <h3 data-en="Address Information" data-ur="پتے کی معلومات"><i class="icon-location"></i>Address Information</h3>
+                <h2 data-en="Address Information" data-ur="پتے کی معلومات"><svg class="i" aria-hidden="true"><use href="#i-pin"/></svg>Address Information</h2>
             </div>
             <div class="form-row">
                 <div class="form-group full-width">
                     <label for="address" data-en="Address" data-ur="پتہ">Address <span class="required">*</span></label>
-                    <textarea id="address" name="address" rows="3" placeholder="House/Street/Area etc" minlength="10" maxlength="250" required></textarea>
+                    <textarea id="address" name="address" rows="3" placeholder="House/Street/Area etc" data-en="House/Street/Area etc" data-ur="مکان، گلی، علاقہ وغیرہ" minlength="10" maxlength="250" required></textarea>
                 </div>
             </div>
             <div class="form-row">
@@ -163,7 +137,7 @@
 
         <div class="form-section">
             <div class="section-header">
-                <h3 data-en="Contact Information" data-ur="رابطہ کی معلومات"><i class="icon-contact"></i>Contact Information</h3>
+                <h2 data-en="Contact Information" data-ur="رابطہ کی معلومات"><svg class="i" aria-hidden="true"><use href="#i-phone"/></svg>Contact Information</h2>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -176,7 +150,7 @@
                     <label for="phone" data-en="Phone Number" data-ur="فون نمبر">Phone Number <span class="required">*</span></label>
                     <div class="phone-container">
                         <select id="country_code" name="country_code" class="country-code">
-                            <option value="+92">🇵🇰 +92</option>
+                            <option value="+92">+92</option>
                         </select>
                         <input type="tel" id="phone" name="phone" inputmode="numeric" maxlength="10"
                                pattern="3([0-4][0-9]|55)[0-9]{7}" placeholder="3001234567"
@@ -188,10 +162,10 @@
 
         <div class="form-section">
             <div class="section-header">
-                <h3 data-en="Document Upload" data-ur="دستاویزات اپلوڈ کریں"><i class="icon-document"></i>Document Upload</h3>
+                <h2 data-en="Document Upload" data-ur="دستاویزات اپلوڈ کریں"><svg class="i" aria-hidden="true"><use href="#i-file"/></svg>Document Upload</h2>
             </div>
             <div class="upload-instructions">
-                <p data-en="📄 Please upload clear, colored scans or photos of the following documents:" data-ur="📄 براہ کرم درج ذیل دستاویزات کے واضح رنگین اسکین یا تصاویر اپلوڈ کریں:">📄 Please upload clear, colored scans or photos of the following documents:</p>
+                <p data-en="Upload clear, coloured scans or photos:" data-ur="واضح رنگین اسکین یا تصاویر اپ لوڈ کریں:"><svg class="i" aria-hidden="true"><use href="#i-upload"/></svg>Upload clear, coloured scans or photos:</p>
                 <ul>
                     <li data-en="Image format: JPG, JPEG, PNG, or PDF" data-ur="تصویر کی شکل: JPG، JPEG، PNG، یا PDF">Image format: JPG, JPEG, PNG, or PDF</li>
                     <li data-en="Maximum file size: 5MB per document" data-ur="زیادہ سے زیادہ فائل سائز: 5MB فی دستاویز">Maximum file size: 5MB per document</li>
@@ -200,14 +174,14 @@
             </div>
 
             <div class="document-upload-group">
-                <h4 data-en="Applicant's CNIC" data-ur="درخواست دہندہ کا شناختی کارڈ">Applicant's CNIC <span class="required">*</span></h4>
+                <h3 class="doc-head" data-en="Applicant's CNIC" data-ur="درخواست دہندہ کا شناختی کارڈ">Applicant's CNIC <span class="required">*</span></h3>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="cnic_front" data-en="CNIC Front Side" data-ur="شناختی کارڈ کا سامنے والا حصہ">CNIC Front Side <span class="required">*</span></label>
                         <div class="file-upload-wrapper">
                             <input type="file" id="cnic_front" name="cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input" required>
                             <label for="cnic_front" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_cnic_front"></div>
@@ -218,7 +192,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="cnic_back" name="cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input" required>
                             <label for="cnic_back" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_cnic_back"></div>
@@ -228,14 +202,14 @@
             </div>
 
             <div id="minor_documents" style="display:none;" class="document-upload-group">
-                <h4 data-en="Additional Documents (For Applicants Under 18)" data-ur="اضافی دستاویزات (18 سال سے کم درخواست دہندگان کے لیے)">Additional Documents (For Applicants Under 18) <span class="required">*</span></h4>
+                <h3 class="doc-head" data-en="Additional Documents (For Applicants Under 18)" data-ur="اضافی دستاویزات (18 سال سے کم درخواست دہندگان کے لیے)">Additional Documents (For Applicants Under 18) <span class="required">*</span></h3>
                 <div class="form-row">
                     <div class="form-group full-width">
                         <label for="bform" data-en="B-Form / Child Registration Certificate" data-ur="بی فارم / بچے کی رجسٹریشن سرٹیفکیٹ">B-Form / Child Registration Certificate <span class="required">*</span></label>
                         <div class="file-upload-wrapper">
                             <input type="file" id="bform" name="bform" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
                             <label for="bform" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_bform"></div>
@@ -248,7 +222,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="father_cnic_front" name="father_cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
                             <label for="father_cnic_front" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_father_cnic_front"></div>
@@ -259,7 +233,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="father_cnic_back" name="father_cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
                             <label for="father_cnic_back" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_father_cnic_back"></div>
@@ -272,7 +246,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="mother_cnic_front" name="mother_cnic_front" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
                             <label for="mother_cnic_front" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_mother_cnic_front"></div>
@@ -283,7 +257,7 @@
                         <div class="file-upload-wrapper">
                             <input type="file" id="mother_cnic_back" name="mother_cnic_back" accept="image/jpeg,image/jpg,image/png,application/pdf" class="file-input">
                             <label for="mother_cnic_back" class="file-label">
-                                <span class="file-icon">📎</span>
+                                <span class="file-icon"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span>
                                 <span class="file-text" data-en="Choose file or drag here" data-ur="فائل منتخب کریں یا یہاں کھینچیں">Choose file or drag here</span>
                             </label>
                             <div class="file-preview" id="preview_mother_cnic_back"></div>
@@ -295,28 +269,18 @@
 
         <div class="submit-section">
             <p id="submitSummary" class="field-error submit-summary" role="alert"></p>
-            <button type="submit" class="submit-btn" data-en="Submit Application" data-ur="درخواست جمع کریں">
-                <i class="icon-submit"></i>
-                Submit Application
-            </button>
+            <button type="submit" class="submit-btn" data-en="Book my token" data-ur="میرا ٹوکن بُک کریں">Book my token <svg class="i" aria-hidden="true"><use href="#i-arrow"/></svg></button>
+            <p class="submit-note"><span class="en">We check everything once more, then issue your token and email the receipt.</span><span class="ur" lang="ur">ہم سب کچھ ایک بار پھر چیک کرتے ہیں، پھر ٹوکن جاری کر کے رسید ای میل کرتے ہیں۔</span></p>
         </div>
     </form>
 
-</div><!-- form-page-wrap -->
-</div><!-- form-page -->
+</main>
 
-<footer style="background:var(--green-dark);color:rgba(255,255,255,.45);text-align:center;padding:1rem;font-size:.82rem;margin-top:1rem;">
-  <p class="en">© 2025 Directorate General of Immigration &amp; Passports, Government of Pakistan</p>
-  <p class="ur">© 2025 ڈائریکٹوریٹ جنرل آف امیگریشن اینڈ پاسپورٹس، حکومت پاکستان</p>
-</footer>
+{% include "_app_footer.html" %}
 
 <script>
-let isUrdu=false;
-function toggleLang(){
-  isUrdu=!isUrdu;
-  document.body.classList.toggle('urdu',isUrdu);
-  document.getElementById('navLang').textContent=isUrdu?'🌐 English':'🌐 اردو';
-}
+// Messages in the visitor's language (translate.js keeps passqLang() current).
+function T(en, ur) { return (window.passqLang && passqLang() === 'ur') ? ur : en; }
 </script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
@@ -377,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function() {
         branchSel.innerHTML = "";
         const first = document.createElement("option");
         first.value = "";
-        first.textContent = province ? "Select Branch" : "Select Province First";
+        first.textContent = province ? T("Select Branch", "برانچ منتخب کریں") : T("Select Province First", "پہلے صوبہ منتخب کریں");
         branchSel.appendChild(first);
         if (!province) { branchSel.disabled = true; return; }
         const groups = {};
@@ -401,15 +365,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
     provinceSel.addEventListener("change", function() {
         const districts = this.value ? Object.keys(LOCATIONS[this.value]).sort() : [];
-        fillSelect(districtSel, this.value ? "Select District" : "Select Province First", districts);
-        fillSelect(citySel, "Select District First", []);
+        fillSelect(districtSel, this.value ? T("Select District", "ضلع منتخب کریں") : T("Select Province First", "پہلے صوبہ منتخب کریں"), districts);
+        fillSelect(citySel, T("Select District First", "پہلے ضلع منتخب کریں"), []);
         fillBranches(this.value);
     });
 
     districtSel.addEventListener("change", function() {
         const p = provinceSel.value;
         const cities = (p && this.value) ? LOCATIONS[p][this.value] : [];
-        fillSelect(citySel, this.value ? "Select City" : "Select District First", cities);
+        fillSelect(citySel, this.value ? T("Select City", "شہر منتخب کریں") : T("Select District First", "پہلے ضلع منتخب کریں"), cities);
         if (cities.length === 1) citySel.value = cities[0];
     });
 
@@ -440,20 +404,22 @@ function handleFilePreview(input, previewId) {
         const fileName = file.name;
         const fileSize = (file.size / 1024 / 1024).toFixed(2);
         if (fileSize > 5) {
-            alert('File size exceeds 5MB. Please choose a smaller file.');
             input.value = '';
             preview.innerHTML = '';
+            input.parentElement.classList.remove('file-selected');
+            const err = input.closest('.form-group').querySelector('.field-error') || input.closest('.form-group').appendChild(Object.assign(document.createElement('small'), {className: 'field-error'}));
+            err.textContent = T('This file is larger than 5 MB. Please choose a smaller one.', 'یہ فائل 5 ایم بی سے بڑی ہے۔ چھوٹی فائل منتخب کریں۔');
             return;
         }
         const fileType = file.type;
         if (fileType.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.innerHTML = `<div class="preview-container"><img src="${e.target.result}" alt="Preview" class="preview-image"><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')">✕ Remove</button></div></div>`;
+                preview.innerHTML = `<div class="preview-container"><img src="${e.target.result}" alt="Preview" class="preview-image"><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>${T('Remove', 'ہٹائیں')}</button></div></div>`;
             };
             reader.readAsDataURL(file);
         } else if (fileType === 'application/pdf') {
-            preview.innerHTML = `<div class="preview-container"><div class="pdf-icon">📄</div><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')">✕ Remove</button></div></div>`;
+            preview.innerHTML = `<div class="preview-container"><div class="pdf-icon">PDF</div><div class="preview-info"><p class="preview-filename">${fileName}</p><p class="preview-filesize">${fileSize} MB</p><button type="button" class="remove-file" onclick="removeFile('${input.id}', '${previewId}')"><svg class="i" aria-hidden="true"><use href="#i-x"/></svg>${T('Remove', 'ہٹائیں')}</button></div></div>`;
         }
         input.parentElement.classList.add('file-selected');
     }
@@ -552,9 +518,9 @@ document.addEventListener("DOMContentLoaded", function () {
     function fileError(input) {
         if (input.disabled) return "";
         const f = input.files && input.files[0];
-        if (!f) return input.required ? "Please upload this document." : "";
-        if (!FILE_TYPES.includes(f.type)) return "Only JPG, PNG or PDF files are allowed.";
-        if (f.size > 5 * 1024 * 1024) return "File must be 5 MB or smaller.";
+        if (!f) return input.required ? T("Please upload this document.", "یہ دستاویز اپ لوڈ کریں۔") : "";
+        if (!FILE_TYPES.includes(f.type)) return T("Only JPG, PNG or PDF files are allowed.", "صرف JPG، PNG یا PDF فائلیں قبول ہیں۔");
+        if (f.size > 5 * 1024 * 1024) return T("File must be 5 MB or smaller.", "فائل 5 ایم بی یا اس سے چھوٹی ہونی چاہیے۔");
         return "";
     }
 
@@ -580,7 +546,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         if (count === 0) summary.textContent = "";
         else if (summary.textContent) {
-            summary.textContent = `Please correct the ${count} field${count > 1 ? "s" : ""} marked in red.`;
+            summary.textContent = T(`Please correct the ${count} field${count > 1 ? "s" : ""} marked in red.`, `سرخ نشان والے ${count} خانے درست کریں۔`);
         }
         return count;
     }
@@ -669,12 +635,12 @@ document.addEventListener("DOMContentLoaded", function () {
         FIELDS.concat(FILE_FIELDS).forEach(n => touched.add(n));
         const label = submitBtn.innerHTML;
         submitBtn.disabled = true;
-        submitBtn.textContent = "Checking…";
+        submitBtn.textContent = T("Checking…", "چیک ہو رہا ہے…");
         const result = await validateNow();
         summary.textContent = " ";                          // enables the count message in render()
         const bad = render();
         if (result === null || (result.valid && !result.form_error && bad === 0)) {
-            submitBtn.textContent = "Submitting…";
+            submitBtn.textContent = T("Booking your token…", "آپ کا ٹوکن بُک ہو رہا ہے…");
             form.submit();                                  // server validates again and issues the token
             return;
         }
