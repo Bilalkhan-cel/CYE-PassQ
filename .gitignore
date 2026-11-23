@@ -219,6 +219,7 @@ __marimo__/
 # Design helper files (not needed by the app)
 PRODUCT.md
 DESIGN.md
+brag-output/
 # Streamlit
 .streamlit/secrets.toml
 

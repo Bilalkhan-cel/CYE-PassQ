@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{% block title %}PassQ{% endblock %}</title>
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" sizes="any">
+<link rel="icon" href="{{ url_for('static', filename='images/favicon.svg') }}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{ url_for('static', filename='images/apple-touch-icon.png') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 <script>try{if(sessionStorage.getItem('authSwap')==='1'){document.documentElement.classList.add('auth-swap');sessionStorage.removeItem('authSwap');}}catch(e){}</script>
 </head>
