@@ -44,20 +44,13 @@ The citizen now has a **token, an office, a 20-minute arrival window, a printabl
 
 ## 😓 The problem: a day at the passport office
 
-For many people in Pakistan, getting a passport doesn't start at the office. It starts the night before.
-
-| Time | What happens today |
-|---|---|
-| **3:30 AM** | A family leaves their village or a far-off town. The nearest regional office can be hours away. |
-| **5:00 AM** | They reach the office before sunrise. A queue has already formed outside the gate. |
-| **8:00 AM** | The office opens. Nobody knows their place, their number or when they'll be seen. |
-| **11:00 AM** | Still waiting, in the heat, with children and elderly parents. Nobody can leave, or they lose their place. |
-| **3:00 PM** | Their turn finally comes, or it doesn't, and they're told to come back tomorrow. |
-| **Evening** | A whole day gone: **a day off work, a day's wage lost**, travel paid twice if they have to return. |
-
-It isn't easy for the staff either. Hundreds of anxious people arrive at once. Crowds have to be managed instead of applications. Every question is asked again and again at the counter.
-
-**The real problem isn't the passport process. It's that nobody knows *when* to come.**
+- **No proper system for giving out tokens.** Tokens are handed out at the office, first come, first served.
+- **People must arrive early in the morning** and stand in long queues outside the office.
+- **No guarantee of a token**, even after waiting for hours.
+- **People travel from other districts and cities** to reach an office, and can still go home without a token.
+- **All work is manual**, so offices are chaotic and crowded.
+- **Frustration turns into anger** at the office staff.
+- **Applying for a passport takes the whole day**, and that day's wage is lost.
 
 ---
 
@@ -72,6 +65,14 @@ flowchart LR
     C --> D["🏢 Walk in during<br/>your slot"]
     D --> E["✅ Done the<br/>same morning"]
 ```
+
+- **Book a token from home**, before travelling to the office.
+- **Speak in Urdu** to a female voice assistant: no account, no form.
+- **Or use the web form** with an email-verified account.
+- **Get a token number, an office and a 20-minute arrival window.**
+- **Your token is confirmed before you leave home.** If an office is full, another one is offered.
+- **Get a printable slip and a PDF receipt.** Its barcode holds the token number and its QR code holds the CNIC.
+- **Arrive at your time and finish the same morning**, keeping the rest of your workday.
 
 | | **Before PassQ** | **With PassQ** |
 |---|---|---|
