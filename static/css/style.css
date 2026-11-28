@@ -764,3 +764,9 @@ html.auth-swap .auth-caption { animation: none; }
 [dir="rtl"] .f-group a.forgot-link { text-align: left; }
 [dir="rtl"] .pw-wrap .f-input { padding-right: 14px; padding-left: 2.6rem; }
 [dir="rtl"] .pw-toggle { right: auto; left: .5rem; }
+
+@supports (display: block) {
+    :root {
+        --custom-spacing: 8px;
+    }
+}

@@ -37,6 +37,7 @@ import os
 
 # The folder is "Templates" (capital T). Windows doesn't care, but Linux servers
 # such as Vercel are case-sensitive, so name it explicitly.
+#application configuration and initialization
 app = Flask(__name__, template_folder="Templates")
 _db_url = os.getenv("SQLALCHEMY_DATABASE_UR") or ""
 if _db_url.startswith("postgres://"):           # Heroku/Supabase style; SQLAlchemy wants postgresql://

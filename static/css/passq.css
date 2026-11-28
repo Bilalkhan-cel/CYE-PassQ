@@ -3,7 +3,10 @@
    after the home page (dashboard, form, results, AI help).
    Tokens match Templates/home.html. Logical properties so the
    same rules work left-to-right (English) and right-to-left (Urdu).
-   ============================================================ */
+   ============================================================ 
+   */
+
+
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap');
 
 :root {
